@@ -12,29 +12,30 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
 
+            // Relasi ke user
             $table->foreignId('user_id')
                   ->constrained()
                   ->cascadeOnDelete();
 
-            // Nomor order unik (contoh: ORD-20241210-ABC123)
+            // Nomor order unik
             $table->string('order_number', 50)->unique();
 
-            // Total harga (termasuk ongkir)
+            // Total harga order (termasuk ongkir)
             $table->decimal('total_amount', 15, 2);
 
             // Ongkos kirim
             $table->decimal('shipping_cost', 12, 2)->default(0);
 
-            // Status pesanan
+            // Status order
             $table->enum('status', [
-                'pending',      // Menunggu pembayaran
-                'processing',   // Pembayaran diterima, sedang diproses
-                'shipped',      // Sudah dikirim
-                'delivered',    // Sudah diterima
-                'cancelled'     // Dibatalkan
+                'pending',       // Menunggu pembayaran
+                'processing',    // Sedang diproses
+                'shipped',       // Sudah dikirim
+                'delivered',     // Sudah diterima
+                'cancelled'      // Dibatalkan
             ])->default('pending');
 
-            // Alamat pengiriman (snapshot saat order)
+            // Informasi pengiriman
             $table->string('shipping_name');
             $table->string('shipping_phone', 20);
             $table->text('shipping_address');
@@ -42,15 +43,15 @@ return new class extends Migration
             // Metode pembayaran
             $table->string('payment_method')->nullable();
 
-            // Catatan dari pembeli
+            // Catatan pembeli
             $table->text('notes')->nullable();
 
+            // Tracking tanggal
             $table->timestamps();
 
-            // Index untuk query
-            $table->index('order_number');
-            $table->index('status');
-            $table->index('created_at');
+            // Index tambahan untuk mempercepat query laporan
+            $table->index(['status', 'created_at']);
+            $table->index('user_id');
         });
     }
 
