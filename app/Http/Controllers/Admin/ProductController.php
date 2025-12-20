@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product; // jika ada model Product
+use App\Models\Product;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::all(); // ambil semua produk
+        // Ambil semua produk beserta kategori mereka (eager loading)
+        $products = Product::with('category')->get();
+
+        // Kirim data ke view
         return view('admin.products.index', compact('products'));
     }
 }
