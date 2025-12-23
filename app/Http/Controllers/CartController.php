@@ -2,86 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Services\CartService;
 use App\Models\Product;
+use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-    /**
-     * Menampilkan daftar keranjang
-     */
-    public function index(Request $request)
+    protected $cartService;
+
+    public function __construct(CartService $cartService)
     {
-        $cart = $request->session()->get('cart', []);
-        $cartItems = [];
-        $total = 0;
-        $totalQuantity = 0;
-
-        foreach ($cart as $productId => $quantity) {
-            $product = Product::find($productId);
-            if ($product) {
-                $subtotal = $product->display_price * $quantity;
-                $total += $subtotal;
-                $totalQuantity += $quantity;
-
-                $cartItems[] = [
-                    'product' => $product,
-                    'quantity' => $quantity,
-                    'subtotal' => $subtotal,
-                ];
-            }
-        }
-
-        return view('cart.index', compact('cartItems', 'total', 'totalQuantity'));
+        $this->cartService = $cartService;
     }
 
-    /**
-     * Tambah produk ke keranjang
-     */
-    public function add(Request $request, Product $product)
+    public function index()
+{
+    $cart = $this->cartService->getCart();
+    $cart->load(['items.product.primaryImage']);
+
+    $cartItems = $cart->items->map(function ($item) {
+        return [
+            'product' => $item->product,
+            'quantity' => $item->quantity,
+            'subtotal' => $item->quantity * $item->product->display_price,
+        ];
+    });
+
+    $totalQuantity = $cartItems->sum('quantity');
+    $total = $cartItems->sum('subtotal');
+
+    return view('cart.index', compact('cartItems', 'totalQuantity', 'total'));
+}
+
+
+    public function add(Request $request)
     {
-        $quantity = $request->input('quantity', 1);
-        $cart = $request->session()->get('cart', []);
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1'
+        ]);
 
-        if (isset($cart[$product->id])) {
-            $cart[$product->id] += $quantity;
-        } else {
-            $cart[$product->id] = $quantity;
-        }
+        $product = Product::findOrFail($request->product_id);
+        $this->cartService->addProduct($product, $request->quantity);
 
-        $request->session()->put('cart', $cart);
-
-        return redirect()->back()->with('success', "{$product->name} berhasil ditambahkan ke keranjang");
+        return back()->with('success', 'Produk berhasil ditambahkan ke keranjang!');
     }
 
-    /**
-     * Hapus produk dari keranjang
-     */
-    public function remove(Request $request, Product $product)
+    public function update(Request $request, $itemId)
     {
-        $cart = $request->session()->get('cart', []);
+        $request->validate(['quantity' => 'required|integer|min:0']);
+        $this->cartService->updateQuantity($itemId, $request->quantity);
 
-        if (isset($cart[$product->id])) {
-            unset($cart[$product->id]);
-            $request->session()->put('cart', $cart);
-        }
-
-        return redirect()->back()->with('success', "{$product->name} berhasil dihapus dari keranjang");
+        return back()->with('success', 'Keranjang diperbarui.');
     }
 
-    /**
-     * Update jumlah produk
-     */
-    public function update(Request $request, Product $product)
+    public function remove($itemId)
     {
-        $quantity = max(1, (int) $request->input('quantity', 1));
-        $cart = $request->session()->get('cart', []);
-
-        if (isset($cart[$product->id])) {
-            $cart[$product->id] = $quantity;
-            $request->session()->put('cart', $cart);
-        }
-
-        return redirect()->back()->with('success', "Jumlah {$product->name} berhasil diperbarui");
+        $this->cartService->removeItem($itemId);
+        return back()->with('success', 'Item dihapus dari keranjang.');
     }
 }

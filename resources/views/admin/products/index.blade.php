@@ -3,24 +3,43 @@
 @section('page-title', 'Daftar Produk')
 
 @section('content')
-    <h1>Daftar Produk</h1>
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Daftar Produk</h5>
+            <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">
+                + Tambah Produk
+            </a>
+        </div>
 
-    <table border="1" cellpadding="10">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nama</th>
-                <th>Harga</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($products as $product)
-            <tr>
-                <td>{{ $product->id }}</td>
-                <td>{{ $product->name }}</td>
-                <td>{{ $product->formatted_price }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th width="80">ID</th>
+                            <th>Nama Produk</th>
+                            <th width="150">Harga</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($products as $product)
+                            <tr>
+                                <td class="text-center">{{ $product->id }}</td>
+                                <td>{{ $product->name }}</td>
+                                <td class="text-end">{{ $product->formatted_price }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">
+                                    Data produk belum tersedia
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

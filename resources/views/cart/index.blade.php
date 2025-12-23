@@ -1,9 +1,4 @@
-{{-- ================================================
-     FILE: resources/views/cart/index.blade.php
-     FUNGSI: Halaman keranjang belanja
-     ================================================ --}}
-
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Keranjang Belanja')
 
@@ -13,7 +8,7 @@
         <i class="bi bi-cart3 me-2"></i>Keranjang Belanja
     </h2>
 
-    @if($cart && $cart->items->count())
+    @if(!empty($cartItems) && count($cartItems) > 0)
         <div class="row">
             {{-- Cart Items --}}
             <div class="col-lg-8 mb-4">
@@ -30,46 +25,50 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($cart->items as $item)
+                                @foreach($cartItems as $item)
+                                    @php
+                                        $product = $item['product'] ?? null;
+                                    @endphp
+                                    @if($product)
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ $item->product->image_url }}"
+                                                <img src="{{ $product->image_url ?? '#' }}"
                                                      class="rounded me-3"
                                                      width="60" height="60"
                                                      style="object-fit: cover;">
                                                 <div>
-                                                    <a href="{{ route('catalog.show', $item->product->slug) }}"
+                                                    <a href="{{ route('catalog.show', $product->slug ?? '#') }}"
                                                        class="text-decoration-none text-dark fw-medium">
-                                                        {{ Str::limit($item->product->name, 40) }}
+                                                        {{ Str::limit($product->name ?? '', 40) }}
                                                     </a>
                                                     <div class="small text-muted">
-                                                        {{ $item->product->category->name }}
+                                                        {{ $product->category->name ?? 'Kategori' }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="text-center align-middle">
-                                            {{ $item->product->formatted_price }}
+                                            Rp {{ number_format($product->display_price ?? 0, 0, ',', '.') }}
                                         </td>
                                         <td class="text-center align-middle">
-                                            <form action="{{ route('cart.update', $item->id) }}" method="POST"
+                                            <form action="{{ route('cart.update', $product->id) }}" method="POST"
                                                   class="d-inline-flex align-items-center">
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="number" name="quantity"
-                                                       value="{{ $item->quantity }}"
-                                                       min="1" max="{{ $item->product->stock }}"
+                                                       value="{{ $item['quantity'] ?? 1 }}"
+                                                       min="1" max="{{ $product->stock ?? 1 }}"
                                                        class="form-control form-control-sm text-center"
                                                        style="width: 70px;"
                                                        onchange="this.form.submit()">
                                             </form>
                                         </td>
                                         <td class="text-end align-middle fw-bold">
-                                            Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                                            Rp {{ number_format($item['subtotal'] ?? 0, 0, ',', '.') }}
                                         </td>
                                         <td class="align-middle">
-                                            <form action="{{ route('cart.remove', $item->id) }}" method="POST">
+                                            <form action="{{ route('cart.remove', $product->id) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"
@@ -79,6 +78,7 @@
                                             </form>
                                         </td>
                                     </tr>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>
@@ -94,14 +94,14 @@
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Total Harga ({{ $cart->items->sum('quantity') }} barang)</span>
-                            <span>Rp {{ number_format($cart->items->sum('subtotal'), 0, ',', '.') }}</span>
+                            <span>Total Barang ({{ $totalQuantity ?? 0 }} barang)</span>
+                            <span>Rp {{ number_format($total ?? 0, 0, ',', '.') }}</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <span class="fw-bold">Total</span>
                             <span class="fw-bold text-primary fs-5">
-                                Rp {{ number_format($cart->items->sum('subtotal'), 0, ',', '.') }}
+                                Rp {{ number_format($total ?? 0, 0, ',', '.') }}
                             </span>
                         </div>
                         <a href="{{ route('checkout.index') }}" class="btn btn-primary w-100 btn-lg">

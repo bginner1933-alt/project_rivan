@@ -168,7 +168,7 @@ class Product extends Model
             return $image->image_url;
         }
 
-        return asset('images/no-product-image.jpg');
+        return asset('images/NARUTO.webp');
     }
 
     /**
