@@ -10,8 +10,8 @@
 
     <title>@yield('title', 'Toko Online') - {{ config('app.name') }}</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @stack('styles')
+     @vite(['resources/css/app.css', 'resources/js/app.js']) {{-- Stack untuk
+    script tambahan dari child view --}} @stack('scripts')
 </head>
 <body>
     @include('partials.navbar')

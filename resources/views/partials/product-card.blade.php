@@ -62,25 +62,10 @@
              KEBALIKANNYA:
              @guest - hanya tampil jika belum login --}}
 
-            <button type="button"
-                    onclick="toggleWishlist({{ $product->id }})"
-                    {{-- ↑ Memanggil function JavaScript dengan product ID --}}
-                    class="btn btn-light btn-sm position-absolute top-0 end-0 m-2 rounded-circle wishlist-btn-{{ $product->id }}">
-                    {{-- ↑ Class dinamis: wishlist-btn-123
-                         Digunakan JavaScript untuk find & update button --}}
-
-                <i class="bi {{ auth()->user()->hasInWishlist($product) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
-                {{-- ↑ TERNARY OPERATOR di Blade
-
-                     Syntax: kondisi ? nilai_true : nilai_false
-
-                     auth()->user() = Ambil object User yang login
-                     ->hasInWishlist($product) = Method di Model User
-                     yang cek apakah produk ada di wishlist user
-
-                     Jika ada: icon heart filled warna merah
-                     Jika tidak: icon heart outline --}}
-            </button>
+            <button onclick="toggleWishlist({{ $product->id }})"
+        class="wishlist-btn-{{ $product->id }} btn btn-light btn-sm rounded-circle p-2 transition">
+    <i class="bi {{ Auth::check() && Auth::user()->hasInWishlist($product) ? 'bi-heart-fill text-danger' : 'bi-heart text-secondary' }} fs-5"></i>
+</button>
         @endauth
     </div>
 
