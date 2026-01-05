@@ -21,7 +21,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PaymentController;
-
+use App\Http\Controllers\MidtransNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,18 +63,16 @@ Route::controller(GoogleController::class)->group(function () {
 */
 Route::middleware('auth')->group(function () {
 
-    /*
-    | Profile
-    */
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
-        ->name('profile.password.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Profile
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
+        Route::delete('/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+    });
 
-    /*
-    | Email Verification
-    */
+    // Email Verification
     Route::get('/email/verify', fn () => view('auth.verify-email'))->name('verification.notice');
 
     Route::post('/email/verification-notification', function (Request $request) {
@@ -87,32 +85,32 @@ Route::middleware('auth')->group(function () {
         return redirect('/');
     })->middleware('signed')->name('verification.verify');
 
-    /*
-    | Cart
-    */
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-    Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/cart/{item}', [CartController::class, 'remove'])->name('cart.remove');
+    // Cart
+    Route::prefix('cart')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('cart.index');
+        Route::post('/add', [CartController::class, 'add'])->name('cart.add');
+        Route::patch('/{item}', [CartController::class, 'update'])->name('cart.update');
+        Route::delete('/{item}', [CartController::class, 'remove'])->name('cart.remove');
+    });
 
-    /*
-    | Wishlist
-    */
+    // Wishlist
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
-    Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])
-        ->name('wishlist.toggle');
+    Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
-    /*
-    | Checkout
-    */
+    // Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
-    /*
-    | Orders (User)
-    */
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    // Orders
+    Route::prefix('orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+        // Payment routes
+        Route::get('/{order}/pay', [PaymentController::class, 'show'])->name('orders.pay');
+        Route::get('/{order}/success', [PaymentController::class, 'success'])->name('orders.success');
+        Route::get('/{order}/pending', [PaymentController::class, 'pending'])->name('orders.pending');
+    });
 });
 
 /*
@@ -128,54 +126,33 @@ Route::get('/products/{slug}', [CatalogController::class, 'show'])->name('catalo
 | ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
-        Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
-        Route::resource('products', AdminProductController::class);
-        Route::resource('categories', AdminCategoryController::class);
+    // Products & Categories
+    Route::resource('products', AdminProductController::class);
+    Route::resource('categories', AdminCategoryController::class);
 
-        Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
-        Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
-            ->name('orders.updateStatus');
+    // Orders
+    Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
 
-        Route::get('reports/sales', [ReportController::class, 'sales'])
-            ->name('reports.sales');
+    // Reports
+    Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('reports/sales/export', [ReportController::class, 'exportSales'])->name('reports.export-sales');
 
-        Route::resource('users', UserController::class)->only(['index', 'show', 'destroy']);
-    });
-
-
-    // routes/web.php
-
-
-Route::middleware('auth')->group(function () {
-    // ... routes lainnya
-
-    // Payment Routes
-    Route::get('/orders/{order}/pay', [PaymentController::class, 'show'])
-        ->name('orders.pay');
-    Route::get('/orders/{order}/success', [PaymentController::class, 'success'])
-        ->name('orders.success');
-    Route::get('/orders/{order}/pending', [PaymentController::class, 'pending'])
-        ->name('orders.pending');
+    // Users
+    Route::resource('users', UserController::class)->only(['index', 'show', 'destroy']);
 });
 
-// routes/web.php
-
-use App\Http\Controllers\MidtransNotificationController;
-
-// ============================================================
-// MIDTRANS WEBHOOK
-// Route ini HARUS public (tanpa auth middleware)
-// Karena diakses oleh SERVER Midtrans, bukan browser user
-// ============================================================
+/*
+|--------------------------------------------------------------------------
+| MIDTRANS WEBHOOK (PUBLIC)
+|--------------------------------------------------------------------------
+| Route ini HARUS public (tanpa auth middleware)
+| Karena diakses oleh SERVER Midtrans, bukan browser user
+*/
 Route::post('midtrans/notification', [MidtransNotificationController::class, 'handle'])
     ->name('midtrans.notification');
-
-    // Batasi 5 request per menit
-Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');

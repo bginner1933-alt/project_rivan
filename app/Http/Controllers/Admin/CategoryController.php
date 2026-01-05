@@ -13,23 +13,26 @@ use Illuminate\Support\Str;
 class CategoryController extends Controller
 {
     /**
-     * Menampilkan daftar kategori dengan caching dan pagination.
+     * Menampilkan daftar kategori dengan caching per halaman.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil data kategori dari cache untuk performa lebih baik
-        $categories = Cache::remember('global_categories', 3600, function () {
+        $page = $request->get('page', 1); // Ambil halaman saat ini
+        $perPage = 10; // Jumlah item per halaman
+
+        // Cache per halaman
+        $categories = Cache::remember("global_categories_page_$page", 3600, function () use ($perPage) {
             return Category::select('id', 'name', 'slug', 'is_active', 'image', 'created_at')
-                ->withCount('products') // Hitung jumlah produk di setiap kategori
-                ->latest() // Urut berdasarkan terbaru
-                ->paginate(10);
+                ->withCount('products') // Hitung jumlah produk per kategori
+                ->latest()
+                ->paginate($perPage);
         });
 
         return view('admin.categories.index', compact('categories'));
     }
 
     /**
-     * Menyimpan kategori baru ke database.
+     * Menyimpan kategori baru.
      */
     public function store(Request $request)
     {
@@ -40,26 +43,23 @@ class CategoryController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Upload gambar jika ada
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')
                 ->store('categories', 'public');
         }
 
-        // Generate slug otomatis
         $validated['slug'] = Str::slug($validated['name']);
 
-        // Simpan ke database
         Category::create($validated);
 
-        // Hapus cache agar data terbaru muncul
-        Cache::forget('global_categories');
+        // Hapus semua cache halaman
+        $this->clearCategoryCache();
 
         return back()->with('success', 'Kategori berhasil ditambahkan!');
     }
 
     /**
-     * Memperbarui data kategori.
+     * Memperbarui kategori.
      */
     public function update(Request $request, Category $category)
     {
@@ -70,7 +70,6 @@ class CategoryController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Handle ganti gambar
         if ($request->hasFile('image')) {
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);
@@ -79,14 +78,12 @@ class CategoryController extends Controller
                 ->store('categories', 'public');
         }
 
-        // Update slug sesuai nama terbaru
         $validated['slug'] = Str::slug($validated['name']);
 
-        // Update database
         $category->update($validated);
 
-        // Hapus cache agar data terbaru muncul
-        Cache::forget('global_categories');
+        // Hapus semua cache halaman
+        $this->clearCategoryCache();
 
         return back()->with('success', 'Kategori berhasil diperbarui!');
     }
@@ -96,23 +93,30 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        // Cegah hapus kategori jika masih ada produk
         if ($category->products()->exists()) {
-            return back()->with('error',
-                'Kategori tidak dapat dihapus karena masih memiliki produk. Silahkan pindahkan atau hapus produk terlebih dahulu.');
+            return back()->with('error', 'Kategori tidak dapat dihapus karena masih memiliki produk.');
         }
 
-        // Hapus file gambar jika ada
         if ($category->image) {
             Storage::disk('public')->delete($category->image);
         }
 
-        // Hapus record dari database
         $category->delete();
 
-        // Hapus cache agar daftar kategori terbaru muncul
-        Cache::forget('global_categories');
+        // Hapus semua cache halaman
+        $this->clearCategoryCache();
 
         return back()->with('success', 'Kategori berhasil dihapus!');
+    }
+
+    /**
+     * Hapus semua cache kategori (semua halaman).
+     */
+    protected function clearCategoryCache()
+    {
+        $pages = ceil(Category::count() / 10); // jumlah halaman cache
+        for ($i = 1; $i <= $pages; $i++) {
+            Cache::forget("global_categories_page_$i");
+        }
     }
 }

@@ -2,15 +2,25 @@
 
 namespace App\Providers;
 
-use Illuminate\Auth\Events\Login;
-use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use App\Listeners\MergeCartListener;
+use App\Models\Product;
+use Illuminate\Support\ServiceProvider;
+use App\Observers\ProductObserver;
 
-class EventServiceProvider extends ServiceProvider
+class AppServiceProvider extends ServiceProvider
 {
-    protected $listen = [
-        Login::class => [
-            MergeCartListener::class,
-        ],
-    ];
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        Product::observe(ProductObserver::class);
+    }
 }
