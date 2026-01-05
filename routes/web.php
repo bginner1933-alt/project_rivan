@@ -164,3 +164,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}/pending', [PaymentController::class, 'pending'])
         ->name('orders.pending');
 });
+
+// routes/web.php
+
+use App\Http\Controllers\MidtransNotificationController;
+
+// ============================================================
+// MIDTRANS WEBHOOK
+// Route ini HARUS public (tanpa auth middleware)
+// Karena diakses oleh SERVER Midtrans, bukan browser user
+// ============================================================
+Route::post('midtrans/notification', [MidtransNotificationController::class, 'handle'])
+    ->name('midtrans.notification');
+
+    // Batasi 5 request per menit
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');

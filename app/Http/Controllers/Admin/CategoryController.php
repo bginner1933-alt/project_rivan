@@ -6,22 +6,24 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
     /**
-     * Menampilkan daftar kategori.
+     * Menampilkan daftar kategori dengan caching dan pagination.
      */
     public function index()
     {
-        // Mengambil data kategori dengan pagination.
-        // withCount('products'): Menghitung jumlah produk di setiap kategori.
-        // Teknik ini jauh lebih efisien daripada memanggil $category->products->count() di view (N+1 Problem).
-        $categories = Category::withCount('products')
-            ->latest() // Urutkan dari yang terbaru (created_at desc)
-            ->paginate(10); // Batasi 10 item per halaman
+        // Ambil data kategori dari cache untuk performa lebih baik
+        $categories = Cache::remember('global_categories', 3600, function () {
+            return Category::select('id', 'name', 'slug', 'is_active', 'image', 'created_at')
+                ->withCount('products') // Hitung jumlah produk di setiap kategori
+                ->latest() // Urut berdasarkan terbaru
+                ->paginate(10);
+        });
 
         return view('admin.categories.index', compact('categories'));
     }
@@ -31,31 +33,27 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validasi Input
         $validated = $request->validate([
-            // 'unique:categories': Pastikan nama belum dipakai di tabel categories
             'name' => 'required|string|max:100|unique:categories',
             'description' => 'nullable|string|max:500',
-            // Validasi file gambar (maks 1MB)
             'image' => 'nullable|image|max:1024',
             'is_active' => 'boolean',
         ]);
 
-        // 2. Handle Upload Gambar (Jika ada)
+        // Upload gambar jika ada
         if ($request->hasFile('image')) {
-            // store('categories', 'public') akan menyimpan file di: storage/app/public/categories
-            // dan mengembalikan path file tersebut.
             $validated['image'] = $request->file('image')
                 ->store('categories', 'public');
         }
 
-        // 3. Generate Slug Otomatis
-        // Slug digunakan untuk URL yang SEO-friendly.
-        // Contoh: "Elektronik Murah" -> "elektronik-murah"
+        // Generate slug otomatis
         $validated['slug'] = Str::slug($validated['name']);
 
-        // 4. Simpan ke Database
+        // Simpan ke database
         Category::create($validated);
+
+        // Hapus cache agar data terbaru muncul
+        Cache::forget('global_categories');
 
         return back()->with('success', 'Kategori berhasil ditambahkan!');
     }
@@ -65,34 +63,30 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        // 1. Validasi Input
         $validated = $request->validate([
-            // PENTING: Pada validasi unique saat update, kita harus mengecualikan ID kategori ini sendiri.
-            // Format: unique:table,column,except_id
-            // Jika tidak dikecualikan, Laravel akan menganggap nama ini duplikat (karena sudah ada di DB milik record ini sendiri).
             'name' => 'required|string|max:100|unique:categories,name,' . $category->id,
             'description' => 'nullable|string|max:500',
             'image' => 'nullable|image|max:1024',
             'is_active' => 'boolean',
         ]);
 
-        // 2. Handle Ganti Gambar
+        // Handle ganti gambar
         if ($request->hasFile('image')) {
-            // Hapus gambar lama dulu agar tidak menumpuk sampah file di server (Garbage Collection manual).
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);
             }
-            // Simpan gambar baru
             $validated['image'] = $request->file('image')
                 ->store('categories', 'public');
         }
 
-        // 3. Update Slug jika nama berubah
-        // Selalu update slug agar sesuai dengan nama terbaru kategori.
+        // Update slug sesuai nama terbaru
         $validated['slug'] = Str::slug($validated['name']);
 
-        // 4. Update data di database
+        // Update database
         $category->update($validated);
+
+        // Hapus cache agar data terbaru muncul
+        Cache::forget('global_categories');
 
         return back()->with('success', 'Kategori berhasil diperbarui!');
     }
@@ -102,21 +96,22 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        // 1. Safeguard (Pencegahan)
-        // Jangan hapus kategori jika masih ada produk di dalamnya.
-        // Ini mencegah produk menjadi "yatim piatu" (orphan data) yang tidak punya kategori.
+        // Cegah hapus kategori jika masih ada produk
         if ($category->products()->exists()) {
             return back()->with('error',
                 'Kategori tidak dapat dihapus karena masih memiliki produk. Silahkan pindahkan atau hapus produk terlebih dahulu.');
         }
 
-        // 2. Hapus file gambar fisik dari storage
+        // Hapus file gambar jika ada
         if ($category->image) {
             Storage::disk('public')->delete($category->image);
         }
 
-        // 3. Hapus record dari database
+        // Hapus record dari database
         $category->delete();
+
+        // Hapus cache agar daftar kategori terbaru muncul
+        Cache::forget('global_categories');
 
         return back()->with('success', 'Kategori berhasil dihapus!');
     }

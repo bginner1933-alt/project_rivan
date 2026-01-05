@@ -1,78 +1,76 @@
 <?php
+// app/Http/Controllers/Admin/OrderController.php
 
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use Illuminate\Support\Facades\DB;
-use App\Services\MidtransService;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
     /**
-     * Menampilkan laporan semua order per tanggal.
+     * Menampilkan daftar semua pesanan untuk admin.
+     * Dilengkapi filter by status.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Laporan penjualan per tanggal
-        $laporan = Order::select(
-            DB::raw('DATE(created_at) as date'),
-            DB::raw('COUNT(*) as total_orders'),
-            DB::raw('SUM(total_amount) as total_sales')
-        )
-        ->groupBy('date')
-        ->orderBy('date', 'desc')
-        ->get();
+        $orders = Order::query()
+            ->with('user') // N+1 prevention: Load data user pemilik order
+            // Fitur Filter Status (?status=pending)
+            ->when($request->status, function($q, $status) {
+                $q->where('status', $status);
+            })
+            ->latest() // Urutkan terbaru
+            ->paginate(20);
 
-        return view('admin.orders.index', compact('laporan'));
+        return view('admin.orders.index', compact('orders'));
     }
 
     /**
-     * Menampilkan detail order.  
-     * Jika order belum memiliki Snap Token dan status unpaid, akan generate token otomatis.
+     * Detail order untuk admin.
      */
-    public function show(Order $order, MidtransService $midtrans)
+    public function show(Order $order)
     {
-        $snapToken = $order->snap_token;
+        // Load item produk dan data user
+        $order->load(['items.product', 'user']);
+        return view('admin.orders.show', compact('order'));
+    }
 
-        // Generate token baru jika belum ada dan status pembayaran unpaid
-        if (!$snapToken && $order->payment_status === 'unpaid') {
-            try {
-                $snapToken = $midtrans->createSnapToken($order);
+    /**
+     * Update status pesanan (misal: kirim barang)
+     * Handle otomatis pengembalian stok jika status diubah jadi Cancelled.
+     */
+    public function updateStatus(Request $request, Order $order)
+    {
+        // Validasi status yang dikirim form
+        $request->validate([
+            'status' => 'required|in:processing,completed,cancelled'
+        ]);
 
-                // Simpan token ke database agar bisa digunakan kembali
-                $order->snap_token = $snapToken;
-                $order->save();
+        $oldStatus = $order->status;
+        $newStatus = $request->status;
 
-            } catch (\Exception $e) {
-                // Log error supaya tidak crash halaman
-                logger()->error('Midtrans Snap Token Error', [
-                    'order_id' => $order->id,
-                    'error'    => $e->getMessage(),
-                ]);
-                $snapToken = null; // tetap aman untuk Blade
+        // ============================================================
+        // LOGIKA RESTOCK (PENTING!)
+        // ============================================================
+        // Jika admin membatalkan pesanan, stok barang harus dikembalikan ke gudang.
+        // Syarat:
+        // 1. Status baru adalah 'cancelled'
+        // 2. Status lama BUKAN 'cancelled' (agar tidak restock 2x kalau tombol ditekan berkali-kali)
+        // ============================================================
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+            foreach ($order->items as $item) {
+                // increment() adalah operasi atomik (thread-safe) di level database.
+                // SQL-nya kurang lebih: UPDATE products SET stock = stock + X WHERE id = Y
+                // Ini aman dari Race Condition jika ada transaksi bersamaan.
+                $item->product->increment('stock', $item->quantity);
             }
         }
 
-        // Kirim order dan snapToken ke view
-        return view('admin.orders.show', compact('order', 'snapToken'));
-    }
+        // Update status di database
+        $order->update(['status' => $newStatus]);
 
-    /**
-     * Optional: cancel order di Midtrans (jika diperlukan)
-     */
-    public function cancel(Order $order, MidtransService $midtrans)
-    {
-        try {
-            $response = $midtrans->cancelTransaction($order->order_number);
-
-            $order->payment_status = 'cancelled';
-            $order->save();
-
-            return redirect()->back()->with('success', 'Transaksi berhasil dibatalkan di Midtrans.');
-
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
-        }
+        return back()->with('success', "Status pesanan diperbarui menjadi $newStatus");
     }
 }
