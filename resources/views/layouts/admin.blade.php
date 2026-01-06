@@ -51,7 +51,7 @@
             <div class="p-3 border-bottom border-secondary">
                 <a href="{{ route('admin.dashboard') }}" class="text-white text-decoration-none d-flex align-items-center">
                     <i class="bi bi-shop fs-4 me-2"></i>
-                    <span class="fs-5 fw-bold">Admin Panel</span>
+                    <span class="fs-5 fw-bold">Rivan Admin</span>
                 </a>
             </div>
 

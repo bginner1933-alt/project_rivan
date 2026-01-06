@@ -23,44 +23,35 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\MidtransNotificationController;
 
-/*
-|--------------------------------------------------------------------------
-| PUBLIC ROUTES
-|--------------------------------------------------------------------------
-*/
+// ================================
+// PUBLIC ROUTES
+// ================================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::view('/tentang', 'tentang');
 
-Route::get('/sapa/{nama}', fn ($nama) =>
-    "Halo, $nama! Selamat datang di Toko Online Raihan."
-);
+Route::get('/sapa/{nama}', fn ($nama) => "Halo, $nama! Selamat datang di Toko Online Raihan.");
+Route::get('/kategori/{nama?}', fn ($nama = 'Semua') => "Menampilkan kategori: $nama");
 
-Route::get('/kategori/{nama?}', fn ($nama = 'Semua') =>
-    "Menampilkan kategori: $nama"
-);
+// Catalog
+Route::get('/products', [CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/products/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
 
-/*
-|--------------------------------------------------------------------------
-| AUTH ROUTES
-|--------------------------------------------------------------------------
-*/
+// ================================
+// AUTH ROUTES (Laravel default)
+// ================================
 Auth::routes();
 
-/*
-|--------------------------------------------------------------------------
-| GOOGLE AUTH
-|--------------------------------------------------------------------------
-*/
+// ================================
+// GOOGLE AUTH
+// ================================
 Route::controller(GoogleController::class)->group(function () {
     Route::get('/auth/google', 'redirect')->name('auth.google');
     Route::get('/auth/google/callback', 'callback')->name('auth.google.callback');
 });
 
-/*
-|--------------------------------------------------------------------------
-| AUTHENTICATED USER ROUTES
-|--------------------------------------------------------------------------
-*/
+// ================================
+// AUTHENTICATED USER ROUTES
+// ================================
 Route::middleware('auth')->group(function () {
 
     // Profile
@@ -106,27 +97,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('orders.show');
 
-        // Payment routes
+        // Payment
         Route::get('/{order}/pay', [PaymentController::class, 'show'])->name('orders.pay');
         Route::get('/{order}/success', [PaymentController::class, 'success'])->name('orders.success');
         Route::get('/{order}/pending', [PaymentController::class, 'pending'])->name('orders.pending');
     });
+
+    // Authenticated Categories (optional if user bisa kelola kategori sendiri)
+    // Route::resource('categories', CategoryController::class)->middleware('auth');
 });
 
-/*
-|--------------------------------------------------------------------------
-| CATALOG (PUBLIC)
-|--------------------------------------------------------------------------
-*/
-Route::get('/products', [CatalogController::class, 'index'])->name('catalog.index');
-Route::get('/products/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
-
-/*
-|--------------------------------------------------------------------------
-| ADMIN ROUTES
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+// ================================
+// ADMIN ROUTES
+// ================================
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
@@ -147,12 +131,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('users', UserController::class)->only(['index', 'show', 'destroy']);
 });
 
-/*
-|--------------------------------------------------------------------------
-| MIDTRANS WEBHOOK (PUBLIC)
-|--------------------------------------------------------------------------
-| Route ini HARUS public (tanpa auth middleware)
-| Karena diakses oleh SERVER Midtrans, bukan browser user
-*/
+// ================================
+// MIDTRANS WEBHOOK (PUBLIC)
+// ================================
 Route::post('midtrans/notification', [MidtransNotificationController::class, 'handle'])
     ->name('midtrans.notification');
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])
+        ->name('profile.google.unlink');
+});

@@ -39,6 +39,11 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- Pagination --}}
+            <div class="mt-3 d-flex justify-content-center">
+                {{ $products->links('vendor.pagination.bootstrap-5') }}
+            </div>
         </div>
     </div>
 </div>
