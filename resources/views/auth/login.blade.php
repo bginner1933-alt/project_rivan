@@ -1,140 +1,165 @@
-{{-- ======================================== FILE:
-resources/views/auth/login.blade.php FUNGSI: Halaman form login
-======================================== --}} @extends('layouts.app') {{-- ↑
-Menggunakan layout dari layouts/app.blade.php Halaman ini akan "masuk" ke bagian
-@yield('content') --}} @section('content') {{-- ↑ Mulai section yang akan
-ditampilkan di @yield('content') --}}
+@extends('layouts.app')
 
-<div class="container">
-  <div class="row justify-content-center">
-    {{-- ↑ justify-content-center = posisikan di tengah horizontal --}}
+@section('content')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
-    <div class="col-md-6">
-      {{-- ↑ col-md-6 = lebar 50% di layar medium ke atas --}}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-9">
+            <div class="card border-0 shadow-lg overflow-hidden rounded-4 animate__animated animate__zoomIn">
+                <div class="row g-0">
+                    
+                    {{-- Sisi Kiri: Visual --}}
+                    <div class="col-lg-5 d-none d-lg-flex bg-primary align-items-center p-5 position-relative overflow-hidden text-white">
+                        <div class="position-relative animate__animated animate__fadeInLeft animate__delay-1s" style="z-index: 2;">
+                            <h2 class="fw-bold mb-3">Selamat Datang Kembali!</h2>
+                            <p class="opacity-75">Masuk untuk mengelola akun Anda dan melihat update terbaru dari kami.</p>
+                            <hr class="w-25 border-2 opacity-100 mb-4">
+                            
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <div class="icon-box bg-white bg-opacity-25 rounded-circle p-2">
+                                    <i class="bi bi-shield-check text-info"></i>
+                                </div>
+                                <span class="small">Keamanan akun prioritas kami.</span>
+                            </div>
+                        </div>
+                        <div class="light-blob position-absolute" style="bottom: -10%; left: -10%; width: 250px; height: 250px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px);"></div>
+                        <div class="position-absolute animate__animated animate__pulse animate__infinite animate__slow" style="top: -20px; right: -20px; z-index: 1; opacity: 0.1;">
+                            <i class="bi bi-lock-fill" style="font-size: 15rem; color: #fff;"></i>
+                        </div>
+                    </div>
 
-      <div class="card shadow-sm">
-        {{-- Card Header --}}
-        <div class="card-header bg-primary text-white text-center">
-          <h4 class="mb-0">🔐 Login ke Akun Anda</h4>
+                    {{-- Sisi Kanan: Form Login --}}
+                    <div class="col-lg-7 bg-white p-4 p-md-5">
+                        <div class="mb-4 animate__animated animate__fadeInDown" style="animation-delay: 0.5s;">
+                            <h3 class="fw-bold text-dark mb-1">🔐 Login Akun</h3>
+                            <p class="text-muted small">Silakan masukkan email dan password Anda.</p>
+                        </div>
+
+                        <form method="POST" action="{{ route('login') }}" class="animate__animated animate__fadeIn" style="animation-delay: 0.8s;">
+                            @csrf
+
+                            {{-- Field Email --}}
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-bold small text-secondary">Email</label>
+                                <div class="input-group custom-input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-primary">
+                                        <i class="bi bi-envelope"></i>
+                                    </span>
+                                    <input id="email" type="email" class="form-control bg-light border-start-0 @error('email') is-invalid @enderror" 
+                                           name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="nama@email.com">
+                                </div>
+                                @error('email')
+                                    <span class="invalid-feedback d-block animate__animated animate__shakeX" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+
+                            {{-- Field Password (DENGAN FITUR MATA) --}}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <label for="password" class="form-label fw-bold small text-secondary">Password</label>
+                                    @if (Route::has('password.request'))
+                                        <a class="text-decoration-none small fw-bold text-primary" href="{{ route('password.request') }}">
+                                            Lupa Password?
+                                        </a>
+                                    @endif
+                                </div>
+                                <div class="input-group custom-input-group position-relative">
+                                    <span class="input-group-text bg-light border-end-0 text-primary">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input id="password" type="password" class="form-control bg-light border-start-0 border-end-0 @error('password') is-invalid @enderror" 
+                                           name="password" required autocomplete="current-password" placeholder="••••••••" style="padding-right: 45px;">
+                                    
+                                    {{-- Tombol Mata --}}
+                                    <span class="input-group-text bg-light border-start-0 cursor-pointer" id="togglePassword" style="cursor: pointer;">
+                                        <i class="bi bi-eye-slash text-muted" id="eyeIcon"></i>
+                                    </span>
+                                </div>
+                                @error('password')
+                                    <span class="invalid-feedback d-block animate__animated animate__shakeX" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+
+                            {{-- Remember Me --}}
+                            <div class="mb-4 form-check">
+                                <input class="form-check-input custom-checkbox" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                                <label class="form-check-label small text-muted" for="remember">
+                                    Ingat saya di perangkat ini
+                                </label>
+                            </div>
+
+                            <div class="d-grid gap-2 mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm hover-grow">
+                                    Masuk Sekarang <i class="bi bi-box-arrow-in-right ms-2"></i>
+                                </button>
+                            </div>
+
+                            <div class="position-relative my-4">
+                                <hr class="text-muted opacity-25">
+                                <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted text-uppercase">Atau masuk dengan</span>
+                            </div>
+
+                            <div class="d-grid gap-2 mb-4">
+                                <a href="{{ route('auth.google') }}" class="btn btn-outline-light border text-dark rounded-pill fw-semibold shadow-sm hover-grow-sm">
+                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="18" class="me-2">
+                                    Google
+                                </a>
+                            </div>
+
+                            <p class="text-center small text-muted mb-0">
+                                Belum punya akun? 
+                                <a href="{{ route('register') }}" class="text-primary fw-bold text-decoration-none hover-link">Daftar Gratis</a>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="card-body p-4">
-          {{-- ================================================ FORM LOGIN
-          ================================================ method="POST" = Kirim
-          data secara aman (tidak terlihat di URL) action = URL tujuan submit
-          form ================================================ --}}
-          <form method="POST" action="{{ route('login') }}">
-            {{-- ================================================ CSRF TOKEN
-            ================================================ @csrf WAJIB ada di
-            setiap form POST/PUT/DELETE Ini adalah proteksi keamanan dari
-            Laravel ================================================ --}} @csrf
-            {{-- ================== FIELD EMAIL ================== --}}
-            <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-
-              <input id="email" type="email" class="form-control @error('email')
-              is-invalid @enderror" {{-- ↑ @error('email') = jika ada error pada
-              field email, tambahkan class 'is-invalid' untuk styling merah --}}
-              name="email" value="{{ old('email') }}" {{-- ↑ old('email') = isi
-              kembali nilai sebelumnya jika form gagal validasi --}} required
-              autocomplete="email" autofocus placeholder="nama@email.com"> {{--
-              Tampilkan pesan error jika ada --}} @error('email')
-              <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-              </span>
-              @enderror
-            </div>
-
-            {{-- ================== FIELD PASSWORD ================== --}}
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-
-              <input
-                id="password"
-                type="password"
-                {{--
-                ↑
-                type="password"
-                ="karakter"
-                akan
-                disembunyikan
-                (●●●●)
-                --}}
-                class="form-control @error('password') is-invalid @enderror"
-                name="password"
-                required
-                autocomplete="current-password"
-                placeholder="••••••••"
-              />
-
-              @error('password')
-              <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-              </span>
-              @enderror
-            </div>
-
-            {{-- ================== CHECKBOX REMEMBER ME ================== --}}
-            <div class="mb-3 form-check">
-              <input class="form-check-input" type="checkbox" name="remember"
-              id="remember" {{ old('remember') ? 'checked' : '' }}> {{-- ↑ Jika
-              sebelumnya dicentang, tetap centang --}}
-
-              <label class="form-check-label" for="remember">
-                Ingat Saya
-              </label>
-            </div>
-            {{-- ↑ "Ingat Saya" = Simpan session lebih lama (tidak logout
-            otomatis) --}} {{-- ================== TOMBOL SUBMIT
-            ================== --}}
-            <div class="d-grid gap-2">
-              {{-- ↑ d-grid = display grid, membuat button full width --}}
-              <button type="submit" class="btn btn-primary btn-lg">
-                Login
-              </button>
-            </div>
-
-            {{-- ================== LINK LUPA PASSWORD ================== --}}
-            <div class="mt-3 text-center">
-              @if (Route::has('password.request'))
-              <a
-                class="text-decoration-none"
-                href="{{ route('password.request') }}"
-              >
-                Lupa Password?
-              </a>
-              @endif
-            </div>
-
-            <hr />
-            {{-- ↑ Garis pemisah --}} {{-- ================== SOCIAL LOGIN
-            ================== --}} {{-- Tombol ini akan diaktifkan di Hari 4
-            --}}
-            <div class="d-grid gap-2">
-              <a href="{{ route('auth.google') }}" class="btn btn-outline-danger">
-                <img
-                  src="https://www.svgrepo.com/show/475656/google-color.svg"
-                  width="20"
-                  class="me-2"
-                />
-                Login dengan Google
-              </a>
-            </div>
-
-            {{-- ================== LINK REGISTER ================== --}}
-            <p class="mt-4 text-center mb-0">
-              Belum punya akun?
-              <a
-                href="{{ route('register') }}"
-                class="text-decoration-none fw-bold"
-              >
-                Daftar Sekarang
-              </a>
-            </p>
-          </form>
-        </div>
-      </div>
     </div>
-  </div>
 </div>
-@endsection {{-- ↑ Akhir dari section content --}}
+
+{{-- SCRIPT JAVASCRIPT UNTUK FITUR MATA --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+        const eyeIcon = document.querySelector('#eyeIcon');
+
+        togglePassword.addEventListener('click', function () {
+            // Toggle tipe input
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // Toggle ikon mata
+            eyeIcon.classList.toggle('bi-eye');
+            eyeIcon.classList.toggle('bi-eye-slash');
+        });
+    });
+</script>
+
+<style>
+    /* Styling Tambahan */
+    body { 
+        background-color: #f8faff;
+        background-image: radial-gradient(#d1d9e6 0.5px, transparent 0.5px);
+        background-size: 20px 20px;
+    }
+    .bg-primary { background: linear-gradient(135deg, #0d6efd 0%, #004dc7 100%) !important; }
+    .card { border: none; }
+    .custom-input-group .form-control:focus {
+        background-color: #fff !important;
+        border-color: #0d6efd;
+        box-shadow: 0 0 10px rgba(13, 110, 253, 0.1);
+    }
+    .hover-grow { transition: all 0.3s ease; }
+    .hover-grow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.2) !important;
+    }
+</style>
+@endsection

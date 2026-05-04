@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -21,10 +22,12 @@ class Product extends Model
         'description',
         'price',
         'discount_price',
-        'stock',
         'weight',
         'is_active',
         'is_featured',
+        'stock',
+        'rental_price', // Tambahan untuk harga sewa
+        'rental_unit',  // Tambahan untuk satuan sewa (jam, hari, bulan)
     ];
 
     // Casts: Konversi tipe data otomatis
@@ -110,6 +113,7 @@ class Product extends Model
     /**
      * Accessor: Formatted Price
      * Format Rupiah: Rp 1.500.000
+     * Ini adalah harga yang ditampilkan (diskon jika ada, atau harga normal)
      *
      * $product->formatted_price
      */
@@ -121,6 +125,7 @@ class Product extends Model
     /**
      * Accessor: Formatted Original Price (Coret)
      * Hanya digunakan jika produk diskon, untuk menampilkan harga asli yang dicoret.
+     * Ini adalah HARGA ASLI (bukan diskon)
      */
     public function getFormattedOriginalPriceAttribute(): string
     {
@@ -162,13 +167,23 @@ class Product extends Model
      */
     public function getImageUrlAttribute(): string
     {
-        $image = $this->primaryImage ?? $this->firstImage ?? $this->images->first();
-
-        if ($image) {
-            return $image->image_url;
+        // 1. primary image (langsung query kalau belum load)
+        if ($this->primaryImage) {
+            return $this->primaryImage->image_url;
         }
 
-        return asset('images/NARUTO.webp');
+        // 2. fallback ke first image
+        if ($this->firstImage) {
+            return $this->firstImage->image_url;
+        }
+
+        // 3. fallback ke images collection
+        if ($this->images()->exists()) {
+            return $this->images()->first()->image_url;
+        }
+
+        // 4. fallback default
+        return asset('images/well.png');
     }
 
     /**
@@ -286,21 +301,27 @@ class Product extends Model
     {
         parent::boot();
 
-        // Auto-generate slug yang UNIK saat creating
+        // ✅ AUTO SLUG
         static::creating(function ($product) {
             if (empty($product->slug)) {
                 $baseSlug = Str::slug($product->name);
                 $slug = $baseSlug;
                 $counter = 1;
 
-                // Loop cek apakah slug sudah dipakai?
-                // Jika ya, tambahkan angka (contoh: produk-1, produk-2)
                 while (static::where('slug', $slug)->exists()) {
                     $slug = $baseSlug . '-' . $counter;
                     $counter++;
                 }
 
                 $product->slug = $slug;
+            }
+        });
+
+        // ✅ HAPUS GAMBAR SETELAH PRODUK BENAR-BENAR KEHAPUS
+        static::deleted(function ($product) {
+            foreach ($product->images as $image) {
+                Storage::disk('public')->delete($image->image_path);
+                $image->delete();
             }
         });
     }

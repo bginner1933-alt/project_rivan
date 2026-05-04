@@ -30,25 +30,24 @@ class OrderController extends Controller
      * Menampilkan detail satu pesanan.
      */
     public function show(Order $order, MidtransService $midtrans)
-{
-    // Security
-    if ($order->user_id !== auth()->id()) {
-        abort(403);
+    {
+        // Security
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Load relasi
+        $order->load(['items.product', 'items.product.primaryImage']);
+
+        // 🔥 BUAT SNAP TOKEN JIKA BELUM ADA
+        if ($order->payment_status === 'unpaid' && !$order->snap_token) {
+            $snapToken = $midtrans->createSnapToken($order);
+
+            $order->update([
+                'snap_token' => $snapToken
+            ]);
+        }
+
+        return view('orders.show', compact('order'));
     }
-
-    // Load relasi
-    $order->load(['items.product', 'items.product.primaryImage']);
-
-    // 🔥 BUAT SNAP TOKEN JIKA BELUM ADA
-    if ($order->payment_status === 'unpaid' && !$order->snap_token) {
-        $snapToken = $midtrans->createSnapToken($order);
-
-        $order->update([
-            'snap_token' => $snapToken
-        ]);
-    }
-
-    return view('orders.show', compact('order'));
-}
-
 }

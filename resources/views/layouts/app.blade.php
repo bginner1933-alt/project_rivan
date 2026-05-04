@@ -1,6 +1,3 @@
-{{-- ================================================================
-     FILE: resources/views/layouts/app.blade.php
-     ================================================================ --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -10,30 +7,41 @@
 
     <title>@yield('title', 'Toko Online') - {{ config('app.name') }}</title>
 
-     @vite(['resources/css/app.css', 'resources/js/app.js']) {{-- Stack untuk
-    script tambahan dari child view --}} @stack('scripts')
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .tailwind-enabled h1, .tailwind-enabled h2, .tailwind-enabled p { margin-bottom: 0; }
+    </style>
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('scripts')
 </head>
 <body>
-    @include('partials.navbar')
+    {{-- Navigasi disembunyikan di halaman tertentu --}}
+    @unless (request()->routeIs('welcome', 'login', 'register'))
+        @include('partials.navbar')
+    @endunless
 
+    {{-- Flash messages --}}
     <div class="container mt-3">
         @include('partials.flash-messages')
     </div>
 
+    {{-- Main content --}}
     <main class="min-vh-100">
         @yield('content')
     </main>
 
-    @include('partials.footer')
+    {{-- Footer disembunyikan di halaman tertentu --}}
+    @unless (request()->routeIs('welcome', 'login', 'register'))
+        @include('partials.footer')
+    @endunless
 
-    {{-- ======================================================
-         SCRIPT UTAMA LAYOUT
-         ====================================================== --}}
     @stack('scripts')
     <script>
-        // ======================================================
-        // Wishlist AJAX (Fetch API)
-        // ======================================================
+        // SCRIPT WISHLIST & QTY ASLI KAMU
         async function toggleWishlist(productId) {
             try {
                 const token = document.querySelector('meta[name="csrf-token"]').content;
@@ -44,23 +52,14 @@
                         "X-CSRF-TOKEN": token,
                     },
                 });
-
-                if (response.status === 401) {
-                    window.location.href = "/login";
-                    return;
-                }
-
+                if (response.status === 401) { window.location.href = "/login"; return; }
                 const data = await response.json();
-
                 if (data.status === "success") {
                     updateWishlistUI(productId, data.added);
                     updateWishlistCounter(data.count);
                     showToast(data.message);
                 }
-            } catch (error) {
-                console.error("Error:", error);
-                showToast("Terjadi kesalahan sistem.", "error");
-            }
+            } catch (error) { console.error("Error:", error); }
         }
 
         function updateWishlistUI(productId, isAdded) {
@@ -68,11 +67,11 @@
             buttons.forEach((btn) => {
                 const icon = btn.querySelector("i");
                 if (isAdded) {
-                    icon.classList.remove("bi-heart", "text-secondary");
-                    icon.classList.add("bi-heart-fill", "text-danger");
+                    icon.classList.replace("bi-heart", "bi-heart-fill");
+                    icon.classList.add("text-danger");
                 } else {
-                    icon.classList.remove("bi-heart-fill", "text-danger");
-                    icon.classList.add("bi-heart", "text-secondary");
+                    icon.classList.replace("bi-heart-fill", "bi-heart");
+                    icon.classList.remove("text-danger");
                 }
             });
         }
@@ -85,22 +84,14 @@
             }
         }
 
-        // ======================================================
-        // Quantity Increment / Decrement
-        // ======================================================
         function incrementQty() {
             const input = document.getElementById('quantity');
-            const max = parseInt(input.max);
-            if (parseInt(input.value) < max) {
-                input.value = parseInt(input.value) + 1;
-            }
+            if (parseInt(input.value) < parseInt(input.max)) input.value = parseInt(input.value) + 1;
         }
 
         function decrementQty() {
             const input = document.getElementById('quantity');
-            if (parseInt(input.value) > 1) {
-                input.value = parseInt(input.value) - 1;
-            }
+            if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
         }
     </script>
 </body>

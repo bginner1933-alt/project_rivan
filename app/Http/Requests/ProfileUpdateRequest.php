@@ -61,18 +61,6 @@ class ProfileUpdateRequest extends FormRequest
                 'string',
                 'max:500',
             ],
-
-            // Avatar: opsional
-            // Harus file gambar (mime: jpg, png, webp)
-            // Max ukuran 2MB (2048 KB)
-            // Dimensi minimal 100x100px agar tidak pecah/blur
-            'avatar' => [
-                'nullable',
-                'image',
-                'mimes:jpeg,jpg,png,webp',
-                'max:2048',
-                'dimensions:min_width=100,min_height=100,max_width=2000,max_height=2000',
-            ],
         ];
     }
 

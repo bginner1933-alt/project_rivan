@@ -32,28 +32,18 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // 1. Handle Upload Avatar
-        // Cek apakah user mengupload file baru di input 'avatar'?
-        if ($request->hasFile('avatar')) {
-            // Upload file baru dan dapatkan path-nya (e.g., avatars/xxx.jpg)
-            $avatarPath = $this->uploadAvatar($request, $user);
-
-            // Simpan path ke properti model, tapi belum di-save ke DB (masih di memory)
-            $user->avatar = $avatarPath;
-        }
-
-        // 2. Update Data Text (Nama, Email, dll)
+        // 1. Update Data Text (Nama, Email, dll)
         // fill() mengisi atribut model dengan data validasi, tapi belum disimpan ke DB.
         // Ini lebih aman daripada $user->update() langsung karena kita mau cek 'isDirty' dulu.
         $user->fill($request->validated());
 
-        // 3. Cek Perubahan Email
+        // 2. Cek Perubahan Email
         // Jika email berubah, kita harus membatalkan status verifikasi email (isDirty cek perubahan di memory).
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
-        // 4. Simpan ke Database
+        // 3. Simpan ke Database
         // Method save() baru benar-benar menjalankan query UPDATE ke database.
         $user->save();
 
@@ -62,27 +52,34 @@ class ProfileController extends Controller
     }
 
     /**
-     * Helper khusus untuk menangani logika upload avatar.
-     * Mengembalikan string path file yang tersimpan.
+     * Update avatar user.
      */
-    protected function uploadAvatar(ProfileUpdateRequest $request, $user): string
+    public function updateAvatar(Request $request): RedirectResponse
     {
-        // Hapus avatar lama (Garbage Collection)
-        // Cek 1: Apakah user punya avatar sebelumnya?
-        // Cek 2: Apakah file fisiknya benar-benar ada di storage 'public'?
+        $request->validate([
+            'avatar' => [
+                'required',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:2048',
+                'dimensions:min_width=100,min_height=100,max_width=2000,max_height=2000',
+            ],
+        ]);
+
+        $user = $request->user();
+
+        // Hapus avatar lama
         if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
             Storage::disk('public')->delete($user->avatar);
         }
 
-        // Generate nama file unik untuk mencegah bentrok nama.
-        // Format: avatar-{user_id}-{timestamp}.{ext}
+        // Upload avatar baru
         $filename = 'avatar-' . $user->id . '-' . time() . '.' . $request->file('avatar')->extension();
-
-        // Simpan file ke folder: storage/app/public/avatars
-        // return path relatif: "avatars/namafile.jpg"
         $path = $request->file('avatar')->storeAs('avatars', $filename, 'public');
 
-        return $path;
+        $user->update(['avatar' => $path]);
+
+        return back()->with('success', 'Foto profil berhasil diperbarui!');
     }
 
     /**
@@ -149,5 +146,20 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Unlink Google account.
+     */
+    public function unlinkGoogle(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $user->update([
+            'google_id' => null,
+            'avatar' => null, // Reset avatar ke default jika menggunakan Google avatar
+        ]);
+
+        return back()->with('success', 'Akun Google berhasil diputuskan.');
     }
 }

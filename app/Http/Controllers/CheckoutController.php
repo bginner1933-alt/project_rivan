@@ -21,9 +21,18 @@ class CheckoutController extends Controller
                 ->with('error', 'Keranjang kosong.');
         }
 
-        $subtotal = $cart->items->sum(function ($item) {
-            return $item->price * $item->quantity;
-        });
+       $subtotal = 0;
+
+        foreach ($cart->items as $item) {
+
+            $price = $item->price ?? 0;
+
+            if ($item->type === 'rent') {
+                $subtotal += $price * $item->quantity * ($item->duration ?? 1);
+            } else {
+                $subtotal += $price * $item->quantity;
+            }
+        }
 
         $shippingCost = 20000;
         $total = $subtotal + $shippingCost;

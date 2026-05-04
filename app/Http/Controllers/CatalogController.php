@@ -89,7 +89,7 @@ class CatalogController extends Controller
         // Cari produk berdasarkan SLUG, bukan ID (SEO Friendly).
         // PENTING: Gunakan scope available() agar user tidak bisa akses produk yang non-aktif via URL langsung.
         $product = Product::available()
-            ->with(['category', 'images']) // Load semua gambar galeri
+            ->with(['category', 'images', 'primaryImage', 'firstImage']) // Load semua gambar galeri
             ->where('slug', $slug)
             ->firstOrFail(); // 404 jika tidak ketemu
 

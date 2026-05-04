@@ -89,14 +89,22 @@ class Category extends Model
      * Nama attribute di code: $category->image_url
      * (Konversi dari getImageUrlAttribute -> image_url)
      */
+    // app/Models/Product.php
+
+// Benar (Category.php)
     public function getImageUrlAttribute(): string
     {
+        // Jika kategori punya kolom 'image' di database
         if ($this->image) {
-            // Jika ada gambar, generate full URL ke storage
+            // Cek apakah isinya URL internet atau file lokal
+            if (str_starts_with($this->image, 'http')) {
+                return $this->image;
+            }
             return asset('storage/' . $this->image);
         }
-        // Jika tidak, tampilkan placeholder
-        return asset('images/NARUTO.webp');
+
+        // Jika tidak ada gambar, pakai placeholder
+        return asset('images/well.png');
     }
 
     /**

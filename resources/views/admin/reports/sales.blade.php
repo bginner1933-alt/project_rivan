@@ -1,138 +1,243 @@
-{{-- resources/views/admin/reports/sales.blade.php --}}
-
 @extends('layouts.admin')
 
 @section('title', 'Laporan Penjualan')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h3 mb-0 text-gray-800">Laporan Penjualan</h2>
-    </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" class="row align-items-end g-3">
+<div class="report-bg py-4">
+
+    <div class="container-fluid">
+
+        {{-- HEADER --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-0">Laporan Penjualan</h3>
+                <small class="text-muted">Analisis performa bisnis Anda</small>
+            </div>
+        </div>
+
+        {{-- FILTER --}}
+        <div class="filter-card mb-4">
+            <form method="GET" class="row g-3 align-items-end">
+
                 <div class="col-md-3">
-                    <label class="form-label">Dari Tanggal</label>
-                    <input type="date" name="date_from" value="{{ $dateFrom }}" class="form-control">
+                    <label class="form-label small text-muted">Dari</label>
+                    <input type="date" name="date_from" value="{{ $dateFrom }}" class="form-control clean-input">
                 </div>
+
                 <div class="col-md-3">
-                    <label class="form-label">Sampai Tanggal</label>
-                    <input type="date" name="date_to" value="{{ $dateTo }}" class="form-control">
+                    <label class="form-label small text-muted">Sampai</label>
+                    <input type="date" name="date_to" value="{{ $dateTo }}" class="form-control clean-input">
                 </div>
+
                 <div class="col-md-6 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search me-1"></i> Filter
+                    <button class="btn btn-primary px-4">
+                        Filter
                     </button>
-                    {{-- Tombol Export --}}
-                    <a href="{{ route('admin.reports.export-sales', request()->all()) }}" class="btn btn-success">
-                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+
+                    <a href="{{ route('admin.reports.export-sales', request()->all()) }}"
+                       class="btn btn-success px-4">
+                        Export
                     </a>
                 </div>
+
             </form>
         </div>
-    </div>
 
-    {{-- Summary Cards --}}
-    <div class="row g-4 mb-4">
-        {{-- Total Pendapatan --}}
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm border-start border-4 border-success">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase fw-bold">Total Pendapatan</div>
-                    <div class="h3 fw-bold text-dark mb-0">
-                         Rp {{ number_format($summary->total_revenue ?? 0, 0, ',', '.') }}
+        {{-- SUMMARY --}}
+        <div class="row g-4 mb-4">
+
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="label">Total Revenue</div>
+                    <div class="value">
+                        Rp {{ number_format($summary->total_revenue ?? 0, 0, ',', '.') }}
                     </div>
-                    <small class="text-muted">Periode ini</small>
                 </div>
             </div>
-        </div>
-        {{-- Total Transaksi --}}
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm border-start border-4 border-primary">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase fw-bold">Total Transaksi</div>
-                    <div class="h3 fw-bold text-dark mb-0">
+
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="label">Total Orders</div>
+                    <div class="value">
                         {{ number_format($summary->total_orders ?? 0) }}
                     </div>
-                    <small class="text-muted">Order paid</small>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="row g-4">
-        {{-- Sales By Category --}}
-        <div class="col-lg-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">Performa Kategori</h5>
-                </div>
-                <div class="card-body">
+        </div>
+
+        {{-- CONTENT --}}
+        <div class="row g-4">
+
+            {{-- CATEGORY --}}
+            <div class="col-lg-4">
+                <div class="panel-card">
+                    <div class="panel-title">Performa Kategori</div>
+
                     @foreach($byCategory as $cat)
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="fw-medium">{{ $cat->name }}</span>
-                                <span class="fw-bold">Rp {{ number_format($cat->total, 0, ',', '.') }}</span>
+                        <div class="cat-item">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ $cat->name }}</span>
+                                <strong>Rp {{ number_format($cat->total, 0, ',', '.') }}</strong>
                             </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar" role="progressbar"
-                                     style="width: {{ ($cat->total / ($summary->total_revenue ?: 1)) * 100 }}%">
-                                </div>
+
+                            <div class="bar">
+                                <div style="width: {{ ($cat->total / ($summary->total_revenue ?: 1)) * 100 }}%"></div>
                             </div>
                         </div>
                     @endforeach
+
                 </div>
             </div>
+
+            {{-- TABLE --}}
+            <div class="col-lg-8">
+                <div class="panel-card">
+
+                    <div class="panel-title">Transaksi</div>
+
+                    <div class="table-responsive">
+                        <table class="table modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Tanggal</th>
+                                    <th>Customer</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @forelse($orders as $order)
+                                    <tr>
+                                        <td>
+                                            <a href="{{ route('admin.orders.show', $order) }}" class="order-id">
+                                                #{{ $order->order_number }}
+                                            </a>
+                                        </td>
+
+                                        <td class="text-muted">
+                                            {{ $order->created_at->format('d M Y') }}
+                                        </td>
+
+                                        <td>
+                                            <div class="fw-semibold">{{ $order->user->name }}</div>
+                                            <small class="text-muted">{{ $order->user->email }}</small>
+                                        </td>
+
+                                        <td class="text-end fw-bold">
+                                            Rp {{ number_format($order->total_amount, 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            Tidak ada transaksi
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        {{ $orders->appends(request()->all())->links() }}
+                    </div>
+
+                </div>
+            </div>
+
         </div>
 
-        {{-- Transactions Table --}}
-        <div class="col-lg-8">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
-                     <h5 class="card-title mb-0">Rincian Transaksi</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Tanggal</th>
-                                <th>Customer</th>
-                                <th class="text-end">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($orders as $order)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('admin.orders.show', $order) }}" class="fw-bold text-decoration-none">
-                                            #{{ $order->order_number }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $order->created_at->format('d M Y H:i') }}</td>
-                                    <td>
-                                        <div class="fw-bold">{{ $order->user->name }}</div>
-                                        <div class="small text-muted">{{ $order->user->email }}</div>
-                                    </td>
-                                    <td class="text-end fw-bold">
-                                        Rp {{ number_format($order->total_amount, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">
-                                        Tidak ada data penjualan pada periode ini.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-footer bg-white">
-                    {{ $orders->appends(request()->all())->links() }}
-                </div>
-            </div>
-        </div>
     </div>
+</div>
+
+{{-- STYLE PREMIUM CLEAN DASHBOARD --}}
+<style>
+.report-bg{
+    background:#f5f7fb;
+    min-height:100vh;
+}
+
+/* FILTER */
+.filter-card{
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.04);
+}
+
+/* INPUT */
+.clean-input{
+    border-radius:10px;
+    border:1px solid #e5e9f2;
+    padding:10px;
+}
+
+/* METRIC CARD */
+.metric-card{
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.04);
+}
+
+.metric-card .label{
+    font-size:12px;
+    color:#888;
+    text-transform:uppercase;
+}
+
+.metric-card .value{
+    font-size:22px;
+    font-weight:700;
+    margin-top:5px;
+}
+
+/* PANEL */
+.panel-card{
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.04);
+    height:100%;
+}
+
+.panel-title{
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+/* CATEGORY BAR */
+.cat-item{
+    margin-bottom:15px;
+}
+
+.bar{
+    height:6px;
+    background:#eef2f7;
+    border-radius:10px;
+    margin-top:6px;
+    overflow:hidden;
+}
+
+.bar div{
+    height:100%;
+    background:#4f8cff;
+}
+
+/* TABLE */
+.modern-table{
+    font-size:14px;
+}
+
+.order-id{
+    text-decoration:none;
+    font-weight:600;
+    color:#4f8cff;
+}
+</style>
+
 @endsection

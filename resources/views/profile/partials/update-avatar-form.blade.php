@@ -4,7 +4,7 @@
     Upload foto profil kamu. Format yang didukung: JPG, PNG, WebP. Maksimal 2MB.
 </p>
 
-<form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+<form method="post" action="{{ route('profile.updateAvatar') }}" enctype="multipart/form-data">
     @csrf
     @method('patch')
 
@@ -14,10 +14,10 @@
             <img id="avatar-preview"
                  class="rounded-circle object-fit-cover border"
                  style="width: 100px; height: 100px;"
-                 src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/NARUTO.webp') }}"
+                 src="{{ $user->avatar_url }}"
                  alt="{{ $user->name }}">
 
-            @if($user->avatar)
+            @if($user->avatar && !str_starts_with($user->avatar, 'http'))
                 <button type="button"
                         onclick="if(confirm('Hapus foto profil?')) document.getElementById('delete-avatar-form').submit()"
                         class="btn btn-danger btn-sm rounded-circle position-absolute top-0 start-100 translate-middle p-1"

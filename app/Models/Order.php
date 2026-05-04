@@ -37,4 +37,17 @@ class Order extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Accessor: Discount Price (Total dengan harga diskon)
+     * Menghitung total pembayaran menggunakan harga diskon untuk semua item
+     */
+    public function getDiscountPriceAttribute(): float
+    {
+        $itemsTotal = $this->items->sum(function ($item) {
+            return $item->subtotal;
+        });
+
+        return $itemsTotal + $this->shipping_cost;
+    }
 }

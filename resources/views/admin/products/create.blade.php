@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 mb-0 text-gray-800">Tambah Produk Baru</h2>
             <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">
@@ -13,127 +13,271 @@
             </a>
         </div>
 
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
+        <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            
+            <div class="row">
+                {{-- Kolom Kiri: Informasi Utama --}}
+                <div class="col-md-8">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="mb-3">Informasi Produk</h5>
+                            
+                            {{-- Nama Produk --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nama Produk</label>
+                                <input type="text" name="name" 
+                                       class="form-control @error('name') is-invalid @enderror"
+                                       value="{{ old('name') }}" placeholder="Masukkan nama produk...">
+                                @error('name') 
+                                    <div class="invalid-feedback">{{ $message }}</div> 
+                                @enderror
+                            </div>
 
-                    {{-- Nama Produk --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Nama Produk</label>
-                        <input type="text" name="name" 
-                               class="form-control @error('name') is-invalid @enderror"
-                               value="{{ old('name') }}">
-                        @error('name') 
-                            <div class="invalid-feedback">{{ $message }}</div> 
-                        @enderror
-                    </div>
+                            {{-- Deskripsi --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Deskripsi Produk</label>
+                                <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="5">{{ old('description') }}</textarea>
+                                @error('description')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                    {{-- Deskripsi --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Deskripsi Produk</label>
-                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="4">{{ old('description') }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                            <div class="row">
+                                {{-- Kategori --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Kategori</label>
+                                    <select name="category_id" class="form-select @error('category_id') is-invalid @enderror">
+                                        <option value="">Pilih Kategori...</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
 
-                    {{-- Kategori Dropdown --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Kategori</label>
-                        <select name="category_id" class="form-select @error('category_id') is-invalid @enderror">
-                            <option value="">Pilih Kategori...</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" 
-                                    {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('category_id') 
-                            <div class="invalid-feedback">{{ $message }}</div> 
-                        @enderror
-                    </div>
-
-                    {{-- Harga, Diskon, Stok, Berat --}}
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-bold">Harga (Rp)</label>
-                            <input type="number" name="price" 
-                                   class="form-control @error('price') is-invalid @enderror" 
-                                   value="{{ old('price', 1000) }}" min="1000">
-                            @error('price') 
-                                <div class="invalid-feedback">{{ $message }}</div> 
-                            @enderror
-                        </div>
-
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-bold">Harga Diskon (Rp)</label>
-                            <input type="number" name="discount_price" 
-                                   class="form-control @error('discount_price') is-invalid @enderror" 
-                                   value="{{ old('discount_price') }}" min="0">
-                            @error('discount_price')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-bold">Stok</label>
-                            <input type="number" name="stock" 
-                                   class="form-control @error('stock') is-invalid @enderror" 
-                                   value="{{ old('stock', 1) }}" min="1">
-                            @error('stock') 
-                                <div class="invalid-feedback">{{ $message }}</div> 
-                            @enderror
-                        </div>
-
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-bold">Berat (gram)</label>
-                            <input type="number" name="weight" 
-                                   class="form-control @error('weight') is-invalid @enderror" 
-                                   value="{{ old('weight', 1) }}" step="0.01" min="1">
-                            @error('weight') 
-                                <div class="invalid-feedback">{{ $message }}</div> 
-                            @enderror
+                                {{-- Berat --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Berat (Gram)</label>
+                                    <div class="input-group">
+                                        <input type="number" name="weight" class="form-control @error('weight') is-invalid @enderror" value="{{ old('weight', 1) }}" min="1">
+                                        <span class="input-group-text">gr</span>
+                                    </div>
+                                    @error('weight') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Upload Gambar --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Upload Gambar</label>
-                        <input type="file" name="images[]" multiple 
-                               class="form-control @error('images') is-invalid @enderror">
-                        @error('images') 
-                            <div class="invalid-feedback">{{ $message }}</div> 
-                        @enderror
-                        @error('images.*')
-                            <div class="invalid-feedback">{{ $message }}</div> 
-                        @enderror
+                    {{-- BAGIAN HARGA JUAL --}}
+                    <div class="card shadow-sm border-0 border-start border-primary border-4 mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="text-primary mb-3"><i class="bi bi-tag-fill"></i> Pengaturan Harga Jual</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Harga Asli</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" name="price" id="price" class="form-control @error('price') is-invalid @enderror" value="{{ old('price', 0) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Harga Diskon (Opsional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" name="discount_price" id="discount_price" class="form-control" value="{{ old('discount_price') }}">
+                                    </div>
+                                    <small id="discount-info" class="text-muted mt-1 d-block">Kosongkan jika tidak ada diskon.</small>
+                                </div>
+                            </div>
+                            <div id="discount-preview" style="display: none;">
+                                <div class="alert alert-success py-2 mt-2 mb-0">
+                                    <small>Hemat: <span id="discount-amount" class="fw-bold"></span> (<span id="discount-percent"></span>)</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {{-- Checkbox Aktif & Featured --}}
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="is_active" value="1" 
-                               id="is_active" {{ old('is_active', 1) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_active">
-                            Aktifkan Produk
-                        </label>
+                    {{-- BAGIAN HARGA SEWA --}}
+                    <div class="card shadow-sm border-0 border-start border-info border-4 mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="text-info mb-3"><i class="bi bi-calendar-check-fill"></i> Pengaturan Harga Sewa</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Harga Sewa</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" name="rental_price" id="rental_price" class="form-control @error('rental_price') is-invalid @enderror" value="{{ old('rental_price') }}">
+                                    </div>
+                                    @error('rental_price') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Satuan Sewa</label>
+                                    <select name="rental_unit" id="rental_unit" class="form-select @error('rental_unit') is-invalid @enderror">
+                                        <option value="">Pilih Satuan...</option>
+                                        <option value="hour" {{ old('rental_unit') == 'hour' ? 'selected' : '' }}>Per Jam</option>
+                                        <option value="day" {{ old('rental_unit') == 'day' ? 'selected' : '' }}>Per Hari</option>
+                                        <option value="week" {{ old('rental_unit') == 'week' ? 'selected' : '' }}>Per Minggu</option>
+                                        <option value="month" {{ old('rental_unit') == 'month' ? 'selected' : '' }}>Per Bulan</option>
+                                    </select>
+                                    @error('rental_unit') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                            <small class="text-muted">Isi bagian ini hanya jika produk tersedia untuk disewa.</small>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" name="is_featured" value="1" 
-                               id="is_featured" {{ old('is_featured') ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_featured">
-                            Produk Unggulan
-                        </label>
+                {{-- Kolom Kanan: Media & Status --}}
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="mb-3">Media & Status</h5>
+                            
+                            {{-- Stok --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Stok Produk</label>
+                                <div class="input-group">
+                                    <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror" value="{{ old('stock', 1) }}" min="0">
+                                    <span class="input-group-text">Pcs</span>
+                                </div>
+                                @error('stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+
+                            {{-- Gambar --}}
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Gambar Produk</label>
+                                <input type="file" name="images[]" multiple class="form-control @error('images') is-invalid @enderror">
+                                <small class="text-muted d-block mt-1">Bisa pilih lebih dari 1 gambar.</small>
+                                @error('images') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+
+                            <hr>
+
+                            {{-- Status --}}
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', 1) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active">Aktifkan Produk</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-4">
+                                <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_featured">Produk Unggulan</label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-save"></i> Simpan Produk
+                            </button>
+                        </div>
                     </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg w-100">
-                        Simpan Produk
-                    </button>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const priceInput = document.getElementById('price');
+    const discountPriceInput = document.getElementById('discount_price');
+
+    const rentalPriceInput = document.getElementById('rental_price');
+    const rentalUnitInput = document.getElementById('rental_unit');
+
+    const discountPreview = document.getElementById('discount-preview');
+    const discountAmount = document.getElementById('discount-amount');
+    const discountPercent = document.getElementById('discount-percent');
+    const discountInfo = document.getElementById('discount-info');
+
+    // =========================
+    // DISCOUNT PREVIEW
+    // =========================
+    function updateDiscountPreview() {
+        const price = parseFloat(priceInput.value) || 0;
+        const discountPrice = parseFloat(discountPriceInput.value) || 0;
+
+        if (discountPrice > 0 && discountPrice < price) {
+            const savings = price - discountPrice;
+            const percent = Math.round((savings / price) * 100);
+
+            discountAmount.textContent = 'Rp ' + savings.toLocaleString('id-ID');
+            discountPercent.textContent = percent + '%';
+            discountPreview.style.display = 'block';
+
+            discountInfo.textContent = 'Harga diskon valid.';
+            discountInfo.className = 'text-success fw-bold';
+
+        } else if (discountPrice >= price && discountPrice > 0) {
+            discountPreview.style.display = 'none';
+            discountInfo.textContent = 'Harga diskon harus lebih rendah dari harga asli!';
+            discountInfo.className = 'text-danger fw-bold';
+
+        } else {
+            discountPreview.style.display = 'none';
+            discountInfo.textContent = 'Kosongkan jika tidak ada diskon.';
+            discountInfo.className = 'text-muted';
+        }
+    }
+
+    // =========================
+    // AUTO SYNC RENTAL PRICE
+    // =========================
+    function syncRentalPrice() {
+        const price = parseFloat(priceInput.value) || 0;
+        const discountPrice = parseFloat(discountPriceInput.value) || 0;
+
+        const finalPrice =
+            (discountPrice > 0 && discountPrice < price)
+                ? discountPrice
+                : price;
+
+        // hanya auto isi kalau belum diubah manual oleh user
+        if (!rentalPriceInput.dataset.manualEdited) {
+            rentalPriceInput.value = finalPrice > 0 ? finalPrice : '';
+        }
+    }
+
+    // =========================
+    // RENTAL VALIDATION
+    // =========================
+    function validateRental() {
+        if (rentalPriceInput.value > 0 && rentalUnitInput.value === "") {
+            rentalUnitInput.classList.add('is-invalid');
+            rentalUnitInput.setCustomValidity('Pilih satuan sewa');
+        } else {
+            rentalUnitInput.classList.remove('is-invalid');
+            rentalUnitInput.setCustomValidity('');
+        }
+    }
+
+    // =========================
+    // EVENTS
+    // =========================
+    priceInput.addEventListener('input', function () {
+        updateDiscountPreview();
+        syncRentalPrice();
+    });
+
+    discountPriceInput.addEventListener('input', function () {
+        updateDiscountPreview();
+        syncRentalPrice();
+    });
+
+    rentalPriceInput.addEventListener('input', function () {
+        // tandai kalau user sudah edit manual
+        rentalPriceInput.dataset.manualEdited = true;
+        validateRental();
+    });
+
+    rentalUnitInput.addEventListener('change', validateRental);
+
+    // =========================
+    // INIT
+    // =========================
+    updateDiscountPreview();
+    syncRentalPrice();
+});
+</script>
 @endsection

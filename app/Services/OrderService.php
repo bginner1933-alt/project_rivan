@@ -25,22 +25,27 @@ class OrderService
             $subtotal = 0;
             $shippingCost = 20000;
 
-            // A. VALIDASI STOK & HITUNG SUBTOTAL
+            // ✅ HITUNG TOTAL (SUDAH SUPPORT RENT)
             foreach ($cart->items as $item) {
 
-                // Lock row product untuk mencegah race condition
                 $product = $item->product()->lockForUpdate()->first();
 
                 if ($item->quantity > $product->stock) {
                     throw new \Exception("Stok produk {$product->name} tidak mencukupi.");
                 }
 
-                $subtotal += $product->price * $item->quantity;
+                $price = $item->price ?? $product->display_price;
+
+                if ($item->type === 'rent') {
+                    $subtotal += $price * $item->quantity * ($item->duration ?? 1);
+                } else {
+                    $subtotal += $price * $item->quantity;
+                }
             }
 
             $totalAmount = $subtotal + $shippingCost;
 
-            // B. BUAT HEADER ORDER
+            // ✅ BUAT ORDER
             $order = Order::create([
                 'user_id'          => $user->id,
                 'order_number'     => 'ORD-' . strtoupper(Str::random(10)),
@@ -53,23 +58,31 @@ class OrderService
                 'shipping_cost'    => $shippingCost,
             ]);
 
-            // C. PINDAHKAN CART ITEMS → ORDER ITEMS
+            // ✅ PINDAHKAN CART → ORDER ITEMS (INI YANG PENTING)
             foreach ($cart->items as $item) {
                 $product = $item->product;
 
+                $price = $item->price ?? $product->display_price;
+
+                if ($item->type === 'rent') {
+                    $subtotalItem = $price * $item->quantity * ($item->duration ?? 1);
+                } else {
+                    $subtotalItem = $price * $item->quantity;
+                }
+
                 $order->items()->create([
                     'product_id'   => $product->id,
-                    'product_name' => $product->name, // snapshot
-                    'price'        => $product->price,
+                    'product_name' => $product->name,
+                    'price'        => $price, // 🔥 FIX DI SINI
                     'quantity'     => $item->quantity,
-                    'subtotal'     => $product->price * $item->quantity,
+                    'subtotal'     => $subtotalItem, // 🔥 FIX DI SINI
                 ]);
 
-                // D. KURANGI STOK (ATOMIC)
+                // kurangi stok
                 $product->decrement('stock', $item->quantity);
             }
 
-            // E. BERSIHKAN KERANJANG
+            // kosongkan cart
             $cart->items()->delete();
 
             return $order;

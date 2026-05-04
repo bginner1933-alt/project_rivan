@@ -33,7 +33,7 @@ return new class extends Migration
         });
     }
 
-    public function down(): voidad
+    public function down(): void
     {
         Schema::dropIfExists('product_images');
     }

@@ -4,6 +4,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,10 +35,12 @@ class ProductImage extends Model
      */
     public function getImageUrlAttribute(): string
     {
-        if (str_starts_with($this->image_path, 'http')) {
+        // Jika path diawali http (seperti placeholder), langsung kembalikan
+        if (Str::startsWith($this->image_path, 'http')) {
             return $this->image_path;
         }
 
+        // Jika path lokal (seperti images/kotak.jpeg), arahkan ke folder storage
         return asset('storage/' . $this->image_path);
     }
 
