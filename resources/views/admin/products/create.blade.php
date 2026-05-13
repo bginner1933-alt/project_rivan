@@ -44,29 +44,78 @@
                             </div>
 
                             <div class="row">
+
                                 {{-- Kategori --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Kategori</label>
-                                    <select name="category_id" class="form-select @error('category_id') is-invalid @enderror">
+
+                                    <select name="category_id"
+                                            class="form-select @error('category_id') is-invalid @enderror">
+
                                         <option value="">Pilih Kategori...</option>
+
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                            <option value="{{ $category->id }}"
+                                                {{ old('category_id') == $category->id ? 'selected' : '' }}>
+
                                                 {{ $category->name }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                                    @error('category_id')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
+
+                                {{-- JENIS PRODUK --}}
+                                {{-- <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Jenis Produk</label>
+
+                                    <select name="type"
+                                            class="form-select @error('type') is-invalid @enderror">
+
+                                        <option value="beli"
+                                            {{ old('type') == 'beli' ? 'selected' : '' }}>
+                                            Beli
+                                        </option>
+
+                                        <option value="sewa"
+                                            {{ old('type') == 'sewa' ? 'selected' : '' }}>
+                                            Sewa
+                                        </option>
+                                    </select>
+
+                                    @error('type')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div> --}}
 
                                 {{-- Berat --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Berat (Gram)</label>
+
                                     <div class="input-group">
-                                        <input type="number" name="weight" class="form-control @error('weight') is-invalid @enderror" value="{{ old('weight', 1) }}" min="1">
+                                        <input type="number"
+                                            name="weight"
+                                            class="form-control @error('weight') is-invalid @enderror"
+                                            value="{{ old('weight', 1) }}"
+                                            min="1">
+
                                         <span class="input-group-text">gr</span>
                                     </div>
-                                    @error('weight') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                                    @error('weight')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -80,7 +129,10 @@
                                     <label class="form-label fw-bold">Harga Asli</label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="number" name="price" id="price" class="form-control @error('price') is-invalid @enderror" value="{{ old('price', 0) }}">
+                                            <input type="number" name="price" id="price" class="form-control @error('price') is-invalid @enderror" 
+                                                {{-- value="{{ old('price') ? number_format(old('price'), 0, ',', '.') : 0 }}"  --}}
+                                                value="{{ old('price') }}"
+                                                oninput="formatRupiah(this)">                       
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -147,11 +199,29 @@
                             </div>
 
                             {{-- Gambar --}}
+                           {{-- Gambar --}}
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Gambar Produk</label>
-                                <input type="file" name="images[]" multiple class="form-control @error('images') is-invalid @enderror">
+                                <input type="file" id="imageInput" name="images[]" multiple 
+                                    class="form-control @error('images') is-invalid @enderror">
+
                                 <small class="text-muted d-block mt-1">Bisa pilih lebih dari 1 gambar.</small>
                                 @error('images') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                                {{-- PREVIEW SLIDER --}}
+                                <div id="imagePreviewContainer" class="mt-3" style="display:none;">
+                                    <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
+                                        <div class="carousel-inner" id="carouselInner"></div>
+
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon"></span>
+                                        </button>
+
+                                        <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon"></span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <hr>
@@ -194,6 +264,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // =========================
     // DISCOUNT PREVIEW
     // =========================
+
+    function formatRupiah(element) {
+        // Hapus semua karakter selain angka
+        let value = element.value.replace(/\D/g, '');
+        
+        // Format angka dengan pemisah ribuan (Gaya Indonesia)
+        if (value) {
+            element.value = new Intl.NumberFormat('id-ID').format(value);
+        } else {
+            element.value = '';
+        }
+    }
+    
     function updateDiscountPreview() {
         const price = parseFloat(priceInput.value) || 0;
         const discountPrice = parseFloat(discountPriceInput.value) || 0;
@@ -225,18 +308,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // AUTO SYNC RENTAL PRICE
     // =========================
     function syncRentalPrice() {
-        const price = parseFloat(priceInput.value) || 0;
-        const discountPrice = parseFloat(discountPriceInput.value) || 0;
-
-        const finalPrice =
-            (discountPrice > 0 && discountPrice < price)
-                ? discountPrice
-                : price;
-
-        // hanya auto isi kalau belum diubah manual oleh user
-        if (!rentalPriceInput.dataset.manualEdited) {
-            rentalPriceInput.value = finalPrice > 0 ? finalPrice : '';
-        }
+        // tidak auto sync lagi
+        return;
     }
 
     // =========================
@@ -278,6 +351,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // =========================
     updateDiscountPreview();
     syncRentalPrice();
+});
+
+// =========================
+// IMAGE PREVIEW SLIDER
+// =========================
+const imageInput = document.getElementById('imageInput');
+const carouselInner = document.getElementById('carouselInner');
+const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+imageInput.addEventListener('change', function () {
+    const files = this.files;
+    carouselInner.innerHTML = '';
+
+    if (files.length === 0) {
+        imagePreviewContainer.style.display = 'none';
+        return;
+    }
+
+    imagePreviewContainer.style.display = 'block';
+
+    Array.from(files).forEach((file, index) => {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const div = document.createElement('div');
+            div.classList.add('carousel-item');
+
+            if (index === 0) div.classList.add('active');
+
+            div.innerHTML = `
+                <img src="${e.target.result}" 
+                     class="d-block w-100 rounded"
+                     style="max-height:300px; object-fit:cover;">
+            `;
+
+            carouselInner.appendChild(div);
+        };
+
+        reader.readAsDataURL(file);
+    });
 });
 </script>
 @endsection

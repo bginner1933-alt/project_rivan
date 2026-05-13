@@ -114,15 +114,6 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- Call to Action --}}
-                <div class="text-center mt-5 pt-4">
-                    <p class="text-secondary fs-5 mb-4">Ingin tahu lebih banyak atau butuh bantuan? Tim kami siap membantu Anda.</p>
-                    <a href="#" class="btn btn-primary">
-                        <i class="bi bi-headset me-2"></i> Hubungi Kami
-                    </a>
-                </div>
-
             </div>
         </div>
     </div>

@@ -152,7 +152,7 @@
                                 </div>
                                 <div class="text-end fw-bold text-dark">
                                     Rp {{ number_format(($item->price ?? 0) * $item->quantity * ($item->duration ?? 1), 0, ',', '.') }}
-                                </div>
+                                </div>  
                             </div>
                         @endforeach
                     </div>
@@ -239,4 +239,4 @@
         </div>
     </div>
 </div>
-@endsectionF
+@endsection

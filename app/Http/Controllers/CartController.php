@@ -118,4 +118,5 @@ class CartController extends Controller
             return back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
         }
     }
+    
 }

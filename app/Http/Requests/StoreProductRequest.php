@@ -24,7 +24,7 @@ class StoreProductRequest extends FormRequest
             // =========================
             // PRICE
             // =========================
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
             'discount_price' => ['nullable', 'numeric', 'min:0', 'lt:price'],
 
             // =========================
@@ -54,20 +54,111 @@ class StoreProductRequest extends FormRequest
             // =========================
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'mimes:jpg,png,webp,jpeg', 'max:2048'],
+
+            'price.required_without' =>
+                'Isi harga jual atau harga sewa.',
+
+            'rental_price.required_without' =>
+                'Isi harga jual atau harga sewa.',
         ];
     }
 
     public function messages(): array
     {
         return [
+
+            // =========================
+            // CATEGORY
+            // =========================
+            'category_id.required' =>
+                'Pilih kategori dulu.',
+
+            'category_id.exists' =>
+                'Kategori tidak ditemukan.',
+
+            // =========================
+            // NAME
+            // =========================
+            'name.required' =>
+                'Nama produk wajib diisi.',
+
+            'name.max' =>
+                'Nama produk terlalu panjang.',
+
+            // =========================
+            // PRICE
+            // =========================
+            'price.required' =>
+                'Harga produk wajib diisi.',
+
+            'price.numeric' =>
+                'Harga harus berupa angka.',
+
+            'price.min' =>
+                'Harga tidak boleh minus.',
+
+            // =========================
+            // DISCOUNT
+            // =========================
+            'discount_price.numeric' =>
+                'Harga diskon harus berupa angka.',
+
+            'discount_price.lt' =>
+                'Harga diskon harus lebih rendah dari harga asli.',
+
+            // =========================
+            // RENTAL
+            // =========================
+            'rental_price.numeric' =>
+                'Harga sewa harus berupa angka.',
+
             'rental_unit.required_with' =>
                 'Jika harga sewa diisi, satuan sewa wajib dipilih.',
 
             'rental_unit.in' =>
                 'Satuan sewa tidak valid.',
 
-            'discount_price.lt' =>
-                'Harga diskon harus lebih rendah dari harga asli.',
+            // =========================
+            // STOCK
+            // =========================
+            'stock.required' =>
+                'Stok produk wajib diisi.',
+
+            'stock.integer' =>
+                'Stok harus berupa angka.',
+
+            'stock.min' =>
+                'Stok tidak boleh minus.',
+
+            // =========================
+            // WEIGHT
+            // =========================
+            'weight.required' =>
+                'Berat produk wajib diisi.',
+
+            'weight.integer' =>
+                'Berat harus berupa angka.',
+
+            'weight.min' =>
+                'Berat minimal 1 gram.',
+
+            // =========================
+            // IMAGES
+            // =========================
+            'images.array' =>
+                'Format gambar tidak valid.',
+
+            'images.max' =>
+                'Maksimal upload 10 gambar.',
+
+            'images.*.image' =>
+                'File harus berupa gambar.',
+
+            'images.*.mimes' =>
+                'Format gambar harus JPG, PNG, JPEG, atau WEBP.',
+
+            'images.*.max' =>
+                'Ukuran gambar maksimal 2MB.',
         ];
     }
 

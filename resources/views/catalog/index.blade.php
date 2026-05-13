@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Product Catalog')
+@section('title', 'Katalog Produk')
 
 @section('content')
 <style>
@@ -8,17 +8,18 @@
         --azure-main: #3b82f6;
         --azure-soft: #eff6ff;
         --dark-slate: #0f172a;
+        --radius-extra: 35px; /* 🟢 Variabel baru untuk sudut bulat */
     }
 
-    /* 🌌 DYNAMIC GRADIENT BACKGROUND */
+    /* 🌌 LATAR BELAKANG GRADASI DINAMIS */
     body {
-        background: linear-gradient(135deg, #47a0ff 0%, #3b82f6 50%, #1e40af 100%);
+        background: linear-gradient(135deg, #47a0ff 0%, #1e3a8a 50%, #1e40af 100%);
         background-attachment: fixed;
         min-height: 100vh;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* ✨ HEADER STYLING */
+    /* ✨ GAYA HEADER */
     .catalog-header {
         padding: 60px 0 40px;
     }
@@ -40,25 +41,39 @@
         font-size: 0.75rem;
     }
 
-    /* 🏷️ FILTER SIDEBAR (CLEAN WHITE) */
+    /* 🏷️ BILAH SAMPING FILTER */
     .filter-sidebar {
         background: #ffffff;
-        border-radius: 28px;
+        border-radius: var(--radius-extra);
         padding: 35px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .filter-title {
-        font-weight: 800;
-        color: var(--dark-slate);
-        font-size: 1.25rem;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: center;
+    /* 🃏 KARTU PRODUK BULAT */
+    .col .card, 
+    .col x-product-card,
+    .product-card-class { 
+        border-radius: var(--radius-extra) !important;
+        overflow: hidden;
+        /* overflow: auto;
+        overflow: scroll; */
+        border: none !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* 🔘 CATEGORY ITEM CUSTOM */
+    .col .card img, 
+    .col x-product-card img {
+        border-top-left-radius: var(--radius-extra) !important;
+        border-top-right-radius: var(--radius-extra) !important;
+    }
+
+    .col .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+    }
+
+    /* 🔘 ITEM KATEGORI KUSTOM */
     .form-check-custom {
         padding: 12px 15px;
         border-radius: 14px;
@@ -73,20 +88,7 @@
         background-color: var(--azure-soft);
     }
 
-    .form-check-input-custom {
-        width: 1.2em;
-        height: 1.2em;
-        margin-right: 12px;
-        cursor: pointer;
-        border: 2px solid #cbd5e1;
-    }
-
-    .form-check-input-custom:checked {
-        background-color: var(--azure-main);
-        border-color: var(--azure-main);
-    }
-
-    /* 💰 PRICE INPUTS */
+    /* 💰 INPUT HARGA */
     .price-input-group {
         background: #f8fafc;
         border: 2px solid #f1f5f9;
@@ -95,26 +97,10 @@
         transition: 0.3s;
     }
 
-    .price-input-group:focus-within {
-        border-color: var(--azure-main);
-        background: white;
-    }
-
-    .price-input-group input {
-        border: none;
-        background: transparent;
-        padding: 10px 5px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .price-input-group input:focus { outline: none; }
-
-    /* 🚀 ACTION BUTTONS */
     .btn-apply {
         background: var(--dark-slate);
         color: white;
-        border-radius: 16px;
+        border-radius: 20px;
         padding: 15px;
         font-weight: 700;
         border: none;
@@ -130,16 +116,14 @@
         color: white;
     }
 
-    /* 📄 EMPTY STATE */
     .empty-container {
         background: rgba(255, 255, 255, 0.95);
-        border-radius: 30px;
+        border-radius: var(--radius-extra);
         padding: 80px 40px;
         text-align: center;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
 
-    /* 🔗 PAGINATION CUSTOM */
+    /* 🔗 PAGINASI KUSTOM */
     .pagination .page-link {
         border: none;
         background: white;
@@ -147,34 +131,33 @@
         margin: 0 5px;
         border-radius: 12px !important;
         font-weight: 700;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
 
-    .pagination .page-item.active .page-link {
-        background: var(--azure-main);
-        color: white;
+    .filter-sidebar {
+        position: sticky;
+        top: 30px;
     }
 </style>
 
 <div class="container pb-5">
 
-    {{-- HEADER SECTION --}}
+    {{-- BAGIAN HEADER --}}
     <div class="catalog-header animate__animated animate__fadeIn">
         <div class="row align-items-end">
             <div class="col-md-7">
-                <span class="text-header-small">Premium Quality</span>
+                <span class="text-header-small">selamat datang di</span>
                 <h1 class="display-magazine mt-3">
-                    Our Best<br>
-                    <span class="text-white-50">Catalog.</span>
+                    wangi<br>
+                    <span class="text-white-50">Projek</span>
                 </h1>
             </div>
             <div class="col-md-5 text-md-end mt-4 mt-md-0">
                 <div class="d-flex flex-column align-items-md-end gap-3">
                     <a href="{{ route('home') }}" class="btn btn-light rounded-pill px-4 fw-800 shadow-lg py-3">
-                        <i class="bi bi-house-door-fill me-2"></i> BACK TO HOME
+                        <i class="bi bi-house-door-fill me-2"></i> Beranda
                     </a>
                     <div class="badge bg-white text-dark rounded-pill px-3 py-2 shadow-sm small fw-bold">
-                        TOTAL {{ $products->total() }} PRODUCTS FOUND
+                        TOTAL {{ $products->total() }} PRODUK DITEMUKAN
                     </div>
                 </div>
             </div>
@@ -182,62 +165,91 @@
     </div>
 
     <div class="row g-4 g-lg-5">
-
-        {{-- LEFT SIDEBAR: FILTERS --}}
+        {{-- BILAH SAMPING KIRI: FILTER --}}
         <div class="col-lg-3">
-            <div class="filter-sidebar sticky-top animate__animated animate__fadeInLeft" style="top: 30px;">
-                <div class="filter-title">
-                    <i class="bi bi-sliders2-vertical me-3 text-primary"></i> Filter Option
+            <div class="filter-sidebar">
+                <div class="filter-title" style="font-weight: 800; color: var(--dark-slate); font-size: 1.25rem; margin-bottom: 25px; display: flex; align-items: center;">
+                    <i class="bi bi-sliders2-vertical me-3 text-primary"></i> Filter Produk
                 </div>
 
                 <form action="{{ route('catalog.index') }}" method="GET">
                     
-                    {{-- CATEGORY SECTION --}}
-                    <div class="mb-5">
-                        <p class="text-uppercase small fw-900 text-muted mb-3" style="letter-spacing: 1px;">Categories</p>
-                        @foreach($categories as $cat)
-                            <label class="form-check-custom" for="c-{{ $cat->id }}">
-                                <input class="form-check-input-custom" type="radio" name="category" 
-                                       value="{{ $cat->slug }}" id="c-{{ $cat->id }}"
-                                       {{ request('category') == $cat->slug ? 'checked' : '' }}
-                                       onchange="this.form.submit()">
-                                <div class="d-flex justify-content-between w-100 align-items-center">
-                                    <span class="fw-bold text-dark">{{ $cat->name }}</span>
-                                    <span class="badge rounded-pill bg-light text-primary px-2 py-1">{{ $cat->products_count }}</span>
-                                </div>
-                            </label>
-                        @endforeach
-                    </div>
+                   {{-- BAGIAN KATEGORI --}}
+                <div class="mb-5">
+                    <p class="text-uppercase small fw-900 text-muted mb-3" style="letter-spacing: 1px;">Kategori</p>
 
-                    {{-- PRICE RANGE SECTION --}}
+                    <div class="mb-4">
+                            <h6 class="fw-bold mb-2">Kategori</h6>
+                            @foreach($categories as $cat)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="category" value="{{ $cat->slug }}"
+                                        {{ request('category') == $cat->slug ? 'checked' : '' }}
+                                        onchange="this.form.submit()">
+                                    <label class="form-check-label">{{ $cat->name }} <small class="text-muted">({{ $cat->products_count }})</small></label>
+                                </div>
+                            @endforeach
+                        </div>
+                </div>
+
+                    {{-- BAGIAN RENTANG HARGA --}}
                     <div class="mb-5">
-                        <p class="text-uppercase small fw-900 text-muted mb-3" style="letter-spacing: 1px;">Price Range</p>
+                        <p class="text-uppercase small fw-900 text-muted mb-3" style="letter-spacing: 1px;">Rentang Harga</p>
                         
                         <div class="price-input-group d-flex align-items-center mb-3">
                             <span class="text-muted small fw-bold">MIN</span>
-                            <input type="number" name="min_price" class="form-control" 
+                            <input type="number" name="min_price" class="form-control border-0 bg-transparent" 
                                    placeholder="0" value="{{ request('min_price') }}">
                         </div>
 
                         <div class="price-input-group d-flex align-items-center mb-4">
                             <span class="text-muted small fw-bold">MAX</span>
-                            <input type="number" name="max_price" class="form-control" 
-                                   placeholder="∞" value="{{ request('max_price') }}">
+                            <input type="number" name="max_price" class="form-control border-0 bg-transparent" 
+                                   placeholder="Tanpa Batas" value="{{ request('max_price') }}">
+                        </div>
+                    </div>
+
+                    {{-- GRUP FILTRASI TIPE TRANSAKSI --}}
+                    <div class="mb-5">
+                        <p class="text-uppercase small fw-900 text-muted mb-3" style="letter-spacing: 1px;">Tipe Transaksi</p>
+                        
+                        <div class="transaction-group" role="group" aria-label="Tipe Transaksi">
+                            <div class="d-flex flex-column gap-2">
+                                {{-- Opsi: Semua --}}
+                                <input type="radio" class="btn-check" name="category" id="cat-all" value="all" 
+                                    {{ request('category') == 'all' || !request('category') ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="btn btn-outline-custom" for="cat-all">
+                                    <i class="bi bi-grid-fill me-2"></i>Semua Produk
+                                </label>
+
+                                {{-- Opsi: Beli --}}
+                                <input type="radio" class="btn-check" name="category" id="cat-beli" value="beli" 
+                                    {{ request('category') == 'beli' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="btn btn-outline-custom" for="cat-beli">
+                                    <i class="bi bi-bag-check-fill me-2"></i>Hanya Beli
+                                </label>
+
+                                {{-- Opsi: Sewa --}}
+                                <input type="radio" class="btn-check" name="category" id="cat-sewa" value="sewa" 
+                                    {{ request('category') == 'sewa' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="btn btn-outline-custom" for="cat-sewa">
+                                    <i class="bi bi-calendar-event-fill me-2"></i>Hanya Sewa
+                                </label>
+                            </div>
                         </div>
                     </div>
 
                     <button type="submit" class="btn btn-apply">
-                        APPLY FILTERS <i class="bi bi-arrow-right-short ms-1"></i>
+                       Terapkan Filter<i class="bi bi-arrow-right-short ms-1"></i>
                     </button>
 
                     <a href="{{ route('catalog.index') }}" class="btn btn-link w-100 text-muted mt-3 text-decoration-none small fw-bold">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> RESET FILTERS
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> ATUR ULANG FILTER
                     </a>
                 </form>
             </div>
         </div>
 
-        {{-- RIGHT CONTENT: PRODUCT GRID --}}
+        {{-- KONTEN KANAN: GRID PRODUK --}}
         <div class="col-lg-9">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4 animate__animated animate__fadeInUp">
                 @forelse($products as $product)
@@ -250,22 +262,22 @@
                             <div class="mb-4">
                                 <i class="bi bi-search-heart text-primary opacity-25" style="font-size: 5rem;"></i>
                             </div>
-                            <h3 class="fw-900 text-dark">No Products Found</h3>
+                            <h3 class="fw-900 text-dark">Produk Tidak Ditemukan</h3>
                             <p class="text-muted mx-auto mb-4" style="max-width: 400px;">
-                                We couldn't find any products matching your current filters. Try adjusting your price range or category.
+                                Kami tidak dapat menemukan produk yang sesuai dengan kriteria filter Anda saat ini.
                             </p>
                             <a href="{{ route('catalog.index') }}" class="btn btn-primary rounded-pill px-5 py-3 fw-bold">
-                                VIEW ALL PRODUCTS
+                                LIHAT SEMUA PRODUK
                             </a>
                         </div>
                     </div>
                 @endforelse
             </div>
 
-            {{-- PAGINATION --}}
+            {{-- PAGINASI --}}
             @if($products->hasPages())
                 <div class="mt-5 d-flex justify-content-center">
-                    <div class="p-3 bg-white rounded-pill shadow-sm">
+                    <div class="p-2 bg-white rounded-pill shadow-sm">
                         {{ $products->links() }}
                     </div>
                 </div>

@@ -75,6 +75,7 @@
                 <div class="text-center mb-5">
                     <h1 class="fw-bold text-dark">Pusat Bantuan</h1>
                     <p class="text-muted">Temukan jawaban, panduan, dan informasi lengkap mengenai layanan kami di sini.</p>
+                    <p><b>Hubungi Kami Jika Ada Masalah +62xxxxxxxxxxx</b></p>
                 </div>
 
                 {{-- NAVIGASI TAB --}}

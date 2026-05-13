@@ -57,15 +57,19 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Cart::class);
     }
 
+    public function user() {
+    return $this->belongsTo(User::class);
+}
+
     /**
      * User memiliki banyak item wishlist.
      */
     public function wishlists()
-{
-    // Relasi User ke Product melalui tabel wishlists
-    return $this->belongsToMany(Product::class, 'wishlists')
-                ->withTimestamps(); // Agar created_at/updated_at di pivot terisi
-}
+    {
+        // Relasi User ke Product melalui tabel wishlists
+        return $this->belongsToMany(Product::class, 'wishlists' /* nama tabel pivot */, 'user_id' /* foreign key di tabel pivot untuk user */, 'product_id' /* foreign key di tabel pivot untuk product */)
+                    ->withTimestamps(); // Agar created_at/updated_at di pivot terisi
+    }
 
     /**
      * User memiliki banyak pesanan.
@@ -137,18 +141,17 @@ class User extends Authenticatable implements MustVerifyEmail
  * Contoh: "Agung Wahyudi" -> "AW"
  * Berguna jika kita ingin membuat UI avatar berupa inisial huruf teks.
  */
-public function getInitialsAttribute(): string
-{
-    $words = explode(' ', $this->name);
-    $initials = '';
+    public function getInitialsAttribute(): string
+    {
+        $words = explode(' ', $this->name);
+        $initials = '';
 
-    foreach ($words as $word) {
-        // Ambil huruf pertama tiap kata dan kapitalkan
-        $initials .= strtoupper(substr($word, 0, 1));
+        foreach ($words as $word) {
+            // Ambil huruf pertama tiap kata dan kapitalkan
+            $initials .= strtoupper(substr($word, 0, 1));
+        }
+
+        // Ambil maksimal 2 huruf pertama saja
+        return substr($initials, 0, 2);
     }
-
-    // Ambil maksimal 2 huruf pertama saja
-    return substr($initials, 0, 2);
-}
-
 }

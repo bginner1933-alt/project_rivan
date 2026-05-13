@@ -32,6 +32,7 @@ class AdminMiddleware
 
             return redirect()->route('login');
             // ↑ Redirect ke halaman login
+            
         }
 
         // ================================================

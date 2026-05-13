@@ -11,11 +11,11 @@
         {{-- Header --}}
         <div class="card-header p-4 d-flex justify-content-between align-items-center bg-primary bg-gradient border-bottom border-info">
             <div class="animate__animated animate__slideInLeft">
-                <h4 class="mb-0 fw-bold text-white"><i class="bi bi-gem me-2"></i>Mahakarya Produk</h4>
+                <h4 class="mb-0 fw-bold text-white"><i class="bi bi-box-seam me-2"></i>Daftar Produk</h4>
                 <small class="text-white-50">Kelola inventaris eksklusif dan katalog berharga Anda</small>
             </div>
             <div class="animate__animated animate__slideInRight d-flex gap-2">
-                <a href="{{ route('home') }}" class="btn btn-light rounded-pill px-4 shadow-sm text-primary fw-bold">
+                <a href="{{ route('home') }}" class="btn btn-info text-white rounded-pill px-4 shadow-sm fw-bold">
                     <i class="bi bi-house-door me-1"></i> Beranda
                 </a>
                 <a href="{{ route('admin.products.create') }}" class="btn btn-info text-white rounded-pill px-4 shadow-sm fw-bold">
@@ -182,7 +182,7 @@
 <style>
     .luxury-admin { background-color: #f4f7f6; min-height: 100vh; }
     .card { border-radius: 15px !important; border: none; }
-    .bg-primary.bg-gradient { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important; }
+    .bg-primary.bg-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #1e3a8a 100%) !important; }
     .image-container { width: 45px; height: 45px; transition: all 0.3s ease; }
     .image-container:hover { transform: scale(1.2); z-index: 10; }
     .product-img { width: 100%; height: 100%; object-fit: cover; }

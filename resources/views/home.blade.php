@@ -15,7 +15,7 @@
             
             <div class="hero-content">
                 <div class="reveal-text">
-                    <span class="hero-subtitle">The Pkl Collection 2026</span>
+                    <span class="hero-subtitle">Wangi Shop</span>
                     <h1 class="serif hero-title">Kemewahan <br> <span class="text-azure">Eksklusif.</span></h1>
                     <p class="hero-text">
                         Temukan keindahan dalam setiap detail produk kami yang dirancang khusus untuk gaya hidup modern Anda.
@@ -41,10 +41,22 @@
         <div class="category-scroll">
             @foreach($categories as $category)
             <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" class="category-item text-decoration-none">
-                <div class="category-circle-wrapper">
-                    <div class="category-circle shadow-sm">
-                        <img src="{{ $category->image_url }}" alt="{{ $category->name }}">
-                    </div>
+                <div class="category-circle">
+                    @if($category->image_url)
+                        <img 
+                            src="{{ $category->image_url }}" 
+                            alt="{{ $category->name }}"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                        >
+
+                        <div class="category-text-fallback" style="display:none;">
+                            {{ $category->name }}
+                        </div>
+                    @else
+                        <div class="category-text-fallback">
+                            {{ $category->name }}
+                        </div>
+                    @endif
                 </div>
                 <div class="text-center">
                     <p class="category-name">{{ $category->name }}</p>
@@ -58,10 +70,15 @@
     {{-- 3. PRODUK UNGGULAN --}}
     <section class="featured-section py-5">
         <div class="container py-4">
+            <div>
+                <div class="accent-line me-3"></div>
+                    <h2 class="serif display-4 italic text-dark-blue">Kategori Populer</h2>
+                <div class="flex-grow-1 ms-4 border-bottom opacity-25"></div>
+            </div>
+
             <div class="row align-items-end mb-5">
                 <div class="col-md-8">
-                    <h2 class="serif display-4 italic text-dark-blue">Produk Unggulan</h2>
-                    <p class="text-muted fw-500">Elegansi biru dalam setiap detail produk terbaik kami.</p>
+                    <h2 class="serif display-4 italic text-dark-blue">For You</h2>
                 </div>
                 <div class="col-md-4 text-md-end">
                     <a href="{{ route('catalog.index') }}" class="view-all-link">
@@ -71,7 +88,7 @@
                 </div>
             </div>
 
-            <div class="row g-4">
+            <div class="product-scroll">
                 @foreach($featuredProducts as $product)
                 <div class="col-6 col-md-3">
                     <div class="product-card-luxury">
@@ -85,26 +102,51 @@
                                 {{-- Wishlist --}}
                                 <button onclick="event.preventDefault(); toggleWishlist({{ $product->id }})" 
                                         class="wishlist-btn-luxury wishlist-btn-{{ $product->id }}">
-                                    <i class="bi {{ (Auth::check() && Auth::user()->wishlist && Auth::user()->wishlist->contains($product->id)) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
+                                    <i class="bi {{ $product->is_wishlisted ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
                                 </button>
+
+                                <span class="badge-terjual">
+                                    {{ $product->total_sold ?? 0 }} Terjual
+                                </span>
                             </div>
 
-                            <div class="mt-4 px-1 text-center">
-                                <h3 class="product-name-luxury">{{ $product->name }}</h3>
-                                
-                                <div class="price-tag d-flex flex-column align-items-center">
-                                    @if($product->display_price < $product->price)
-                                        <div class="sale-price mb-1">
-                                            <span class="currency">Rp</span>
-                                            <span class="amount">{{ number_format($product->price, 0, ',', '.') }}</span>
-                                        </div>
-                                    @endif
+                            <div class="price-container d-flex flex-column align-items-center py-2">  
+                                <h6 class="product-name-luxury mb-1">{{ $product->name }}</h6>                        
+                                <!-- Bagian Harga Jual -->
+                                @if($product->display_price > 0)
+                                    <div class="main-price-wrapper text-center">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <!-- Harga Asli (Harga Jual) -->
+                                            <span class="fw-bold text-danger fs-5">
+                                                <small class="fs-6">Rp</small>{{ number_format($product->display_price, 0, ',', '.') }}
+                                            </span>
 
-                                    <div class="original-price">
-                                        <span class="currency">Rp</span>
-                                        <span class="amount">{{ number_format($product->display_price, 0, ',', '.') }}</span>
+                                            <!-- Harga Coret (Hanya muncul jika ada diskon) -->
+                                            @if($product->display_price < $product->price)
+                                                <span class="text-muted text-decoration-line-through small">
+                                                    Rp{{ number_format($product->price, 0, ',', '.') }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <small class="text-secondary d-block" style="font-size: 0.7rem; margin-top: -5px;">Harga Jual</small>
                                     </div>
-                                </div>
+                                @endif
+
+                                <!-- Divider tipis jika ada kedua harga -->
+                                @if($product->display_price > 0 && $product->rental_price > 0)
+                                    <div class="w-50 border-top my-2 opacity-25"></div>
+                                @endif
+
+                                <!-- Bagian Harga Sewa -->
+                                @if($product->rental_price > 0)
+                                    <div class="rental-price-wrapper text-center">
+                                        <span class="fw-semibold text-primary">
+                                            <small>Rp</small>{{ number_format($product->rental_price, 0, ',', '.') }}
+                                            <span class="text-lowercase fw-normal fs-7">/{{ $product->rental_unit ?? 'hari' }}</span>
+                                        </span>
+                                        <small class="text-secondary d-block" style="font-size: 0.7rem; margin-top: -3px;">Harga Sewa</small>
+                                    </div>
+                                @endif
                             </div>
                         </a>
                     </div>
@@ -192,7 +234,7 @@
     /* Categories */
     .category-scroll { display: flex; gap: 3rem; overflow-x: auto; padding: 1rem 0.5rem; scrollbar-width: none; }
     .category-scroll::-webkit-scrollbar { display: none; }
-    .category-circle-wrapper {
+    /* .category-circle-wrapper {
         padding: 6px;
         border-radius: 50%;
         background: linear-gradient(135deg, var(--azure-blue) 0%, transparent 100%);
@@ -205,7 +247,7 @@
         border: 4px solid white;
         overflow: hidden;
         background: white;
-    }
+    } */
     .category-circle img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
     .category-item:hover .category-circle img { transform: scale(1.1); }
     .category-item:hover .category-circle-wrapper { transform: rotate(10deg) scale(1.05); }
@@ -231,6 +273,22 @@
         font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
     }
 
+    .badge-terjual {
+        position: absolute; 
+        bottom: 20px; 
+        left: 20px;
+
+        background: var(--royal-blue); 
+        color: white;
+        
+        padding: 6px 14px; 
+        border-radius: 50px;
+        
+        font-size: 0.6rem; 
+        font-weight: 800; 
+        text-transform: uppercase;
+    }
+
     .wishlist-btn-luxury {
         position: absolute; top: 20px; right: 20px;
         width: 40px; height: 40px; border-radius: 50%;
@@ -245,5 +303,97 @@
     
     .original-price { color: #ef4444; font-weight: 900; font-size: 1.2rem; }
     .sale-price { color: #94a3b8; font-size: 0.8rem; text-decoration: line-through; font-weight: 600; }
+
+    .product-scroll {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+    }
+
+    .product-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .product-card-luxury {
+        min-width: 200px;
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+    }
+
+    .wishlist-btn-luxury i {
+        transition: 0.2s ease;
+    }
+
+    .wishlist-btn-luxury:hover i {
+        transform: scale(1.2);
+    }
+
+    .category-circle-wrapper {
+        margin-bottom: 1rem;
+    }
+
+    .category-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+
+        position: relative;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: #f3f4f6;
+    }
+
+    .category-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .category-text-fallback {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        text-align: center;
+        padding: 10px;
+
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+
+        background: #f3f4f6;
+    }
 </style>
+<script>
+    function toggleWishlist(productId) {
+    fetch(`/wishlist/toggle/${productId}`, {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const icon = document.querySelector(`.wishlist-btn-${productId} i`);
+
+        if (data.status === 'added') {
+            icon.classList.remove('bi-heart');
+            icon.classList.add('bi-heart-fill', 'text-danger');
+        } else {
+            icon.classList.remove('bi-heart-fill', 'text-danger');
+            icon.classList.add('bi-heart');
+        }
+    });
+}
+</script>
 @endsection

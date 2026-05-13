@@ -211,10 +211,32 @@
                                         Rp {{ number_format($order->total_amount, 0, ',', '.') }}
                                     </span>
                                 </td>
-                                <td>
-                                    @if($order->status == 'pending')
-                                        <span class="badge badge-status bg-warning text-dark">Riwayat Pesanan</span>
-                                    @endif
+                               <td>
+                                    @php
+                                        $status = strtolower($order->status);
+
+                                        $statusClass = match($status) {
+                                            'pending' => 'bg-warning text-dark',
+                                            'processing' => 'bg-primary',
+                                            'delivered' => 'bg-info',
+                                            'completed' => 'bg-success',
+                                            'cancelled' => 'bg-danger',
+                                            default => 'bg-secondary',
+                                        };
+
+                                        $statusLabel = match($status) {
+                                            'pending' => 'Menunggu',
+                                            'processing' => 'Diproses',
+                                            'delivered' => 'Dikirim',
+                                            'completed' => 'Selesai',
+                                            'cancelled' => 'Dibatalkan',
+                                            default => ucfirst($order->status),
+                                        };
+                                    @endphp
+
+                                    <span class="badge badge-status {{ $statusClass }}">
+                                        {{ $statusLabel }}
+                                    </span>
                                 </td>
                                 <td class="text-end pe-4">
                                     <a href="{{ route('orders.show', $order) }}" class="btn btn-detail">

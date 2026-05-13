@@ -12,6 +12,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
+    public function index(Request $request)
+{
+    return $this->sales($request);
+}
     /**
      * Menampilkan halaman laporan di browser.
      */

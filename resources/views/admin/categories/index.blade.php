@@ -148,7 +148,7 @@
 <style>
     /* ... (Style tetap sama seperti kode Anda sebelumnya) ... */
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
-    :root { --royal-navy: #0d6efd; --deep-azure: #0d6efd; --luxury-gold: #c5a059; --soft-blue: #f0f7ff; }
+    :root { --royal-navy: #1e3a8a; --deep-azure: #1e3a8a; --luxury-gold: #c5a059; --soft-blue: #f0f7ff; }
     .luxury-theme { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fbff; min-height: 100vh; }
     .serif { font-family: 'Playfair Display', serif; }
     .italic { font-style: italic; }

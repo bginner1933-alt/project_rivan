@@ -45,7 +45,6 @@
                 <ul class="footer-links">
                     <li><a href="{{ route('catalog.index') }}">Katalog Produk</a></li>
                     <li><a href="{{ route('tentang') }}">Tentang Kami</a></li>
-                    <li><a href="#">Kontak</a></li>
                 </ul>
             </div>
 
@@ -65,9 +64,33 @@
                 <h6 class="footer-title">Hubungi Kami</h6>
 
                 <div class="footer-contact">
-                    <p><i class="bi bi-geo-alt"></i> Bandung, Indonesia</p>
-                    <p><i class="bi bi-telephone"></i> (+62) 81382771810</p>
-                    <p><i class="bi bi-envelope"></i> bginner1933@gmail.com</p>
+                    <p>
+                        <a href="#" 
+                        target="_blank" 
+                        class="contact-phone">
+
+                            <i class="bi bi-geo-alt phone-icon"></i>
+                            Bandung, Indonesia
+                        </a>
+                    </p>
+                    <p>
+                        <a href="https://wa.me/6285105051441"
+                        target="_blank"
+                        class="contact-phone">
+
+                            <i class="bi bi-telephone phone-icon"></i>
+                            (+62) 81382771810
+                        </a>
+                    </p>
+                    <p>
+                        <a href="mailto:bginner1933@gmail.com" 
+                        target="_blank"
+                        class="contact-phone">
+
+                            <i class="bi bi-envelope phone-icon"></i>
+                            bginner1933@gmail.com
+                        </a>
+                    </p>
                 </div>
 
                 <div class="payment-icons mt-4">
@@ -180,5 +203,21 @@
 .footer-divider {
     border-color: rgba(255,255,255,0.15);
     margin: 30px 0;
+}
+
+.contact-phone{
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.contact-phone:hover{
+    color: white;
+}
+
+.phone-icon{
+    color: #60a5fa !important;
+    margin-right: 6px;
 }
 </style>

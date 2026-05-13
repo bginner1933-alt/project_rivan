@@ -22,12 +22,34 @@
             </a>
         </h6>
         <div class="mt-auto">
-            @if($product->has_discount)
-                <p class="fw-bold text-danger mb-0">{{ $product->formatted_price }}</p>
-                <small class="text-decoration-line-through text-muted">{{ $product->formatted_original_price }}</small>
-            @else
-                <p class="fw-bold text-primary mb-0">{{ $product->formatted_price }}</p>
+
+            {{-- PRODUK BELI --}}
+            @if($product->price)
+
+                @if($product->has_discount)
+                    <p class="fw-bold text-danger mb-0">
+                        Rp {{ number_format($product->discount_price, 0, ',', '.') }}
+                    </p>
+
+                    <small class="text-decoration-line-through text-muted">
+                        Rp {{ number_format($product->price, 0, ',', '.') }}
+                    </small>
+                @else
+                    <span class="fw-bold mb-0">
+                        Starting From : <span class="text-danger">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                    </span>
+                @endif
+
+            {{-- PRODUK SEWA --}}
+            @elseif($product->rental_price)
+
+                <p class="fw-bold text-info mb-0">
+                    Rp {{ number_format($product->rental_price, 0, ',', '.') }}
+                    / {{ $product->rental_unit }}
+                </p>
+
             @endif
+
         </div>
     </div>
 </div>

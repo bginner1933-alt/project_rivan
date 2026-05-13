@@ -41,6 +41,12 @@ class HomeController extends Controller
         // ==========================================================
         $featuredProducts = Product::query()
             ->with(['category', 'primaryImage'])
+            // Tambahkan pengecekan wishlist jika user login
+            ->when(auth()->check(), function ($query) {
+                $query->withExists(['wishlists as is_wishlisted' => function ($q) {
+                    $q->where('user_id', auth()->id());
+                }]);
+            })
             ->active()
             ->inStock()
             ->featured()
@@ -48,11 +54,14 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        // ==========================================================
-        // 3. PRODUK TERBARU
-        // ==========================================================
+        // Lakukan hal yang sama untuk latestProducts jika diperlukan
         $latestProducts = Product::query()
             ->with(['category', 'primaryImage'])
+            ->when(auth()->check(), function ($query) {
+                $query->withExists(['wishlists as is_wishlisted' => function ($q) {
+                    $q->where('user_id', auth()->id());
+                }]);
+            })
             ->active()
             ->inStock()
             ->latest()
@@ -60,12 +69,16 @@ class HomeController extends Controller
             ->get();
 
         // ==========================================================
-        // 4. KIRIM KE VIEW
+        // 3. PRODUK TERJUAL
         // ==========================================================
-        return view('home', compact(
-            'categories',
-            'featuredProducts',
-            'latestProducts'
-        ));
+        $featuredProducts = Product::withSum([
+            'orderItems as total_sold' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('status', 'completed');
+                });
+            }
+        ], 'quantity')->latest()->take(8)->get();
+
+        return view('home', compact('categories', 'featuredProducts', 'latestProducts'));
     }
 }

@@ -80,3 +80,34 @@ footer {
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* =========================================
+   PAGINATION FIX
+========================================= */
+
+.pagination {
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination a,
+.pagination > span {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 12px !important;
+
+    text-decoration: none !important;
+
+    flex-shrink: 0 !important;
+}

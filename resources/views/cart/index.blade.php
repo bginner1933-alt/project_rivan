@@ -221,7 +221,7 @@
 
             {{-- CHECKOUT PANEL --}}
             <div class="col-lg-4 animate__animated animate__fadeInRight">
-                <div class="summary-card sticky-top" style="top: 100px;">
+                <div class="summary-card" style="top: 100px;">
                     <h4 class="fw-800 text-dark mb-4">Ringkasan Pesanan</h4>
                     
                     <div class="d-flex justify-content-between mb-3">

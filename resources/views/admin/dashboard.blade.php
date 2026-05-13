@@ -8,7 +8,7 @@
     {{-- 1. Elegant Header --}}
     <div class="row align-items-center mb-4">
         <div class="col-md-6">
-            <h3 class="fw-extrabold text-dark mb-1">🚀 Overview Bisnis</h3>
+            <h3 class="fw-extrabold text-dark mb-1">📈 Overview Bisnis</h3>
             <p class="text-muted mb-0">Laporan performa toko Anda hari ini.</p>
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">

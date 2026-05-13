@@ -19,6 +19,7 @@ class Product extends Model
         'category_id',
         'name',
         'slug',
+        'type', // Tambahan untuk tipe produk (beli/sewa/keduanya)
         'description',
         'price',
         'discount_price',
@@ -350,4 +351,11 @@ class Product extends Model
     {
         return $this->stock >= $quantity;
     }
+
+    public function wishlists()
+    {
+        // Pastikan nama tabel pivot Anda adalah 'wishlists'
+        return $this->belongsToMany(User::class, 'wishlists', 'product_id', 'user_id')->withTimestamps();
+    }
+    
 }

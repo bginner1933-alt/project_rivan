@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
         | CATEGORY
         |--------------------------------------------------------------------------
         */
-        $categories = ['Elektronik', 'Kamera', 'Aksesoris'];
+        $categories = ['Kerajinan', 'Aksesoris', 'Seserahan'];
 
         foreach ($categories as $cat) {
             Category::updateOrCreate(
@@ -54,50 +54,209 @@ class DatabaseSeeder extends Seeder
         | PRODUCTS
         |--------------------------------------------------------------------------
         */
-        $kameraCategory = Category::where('slug', 'kamera')->first();
+        $kerajinanCategory = Category::where('slug', 'Kerajinan')->first();
         $aksesorisCategory = Category::where('slug', 'aksesoris')->first();
+        $souvenirCategory = Category::where('slug', 'souvenir')->first();
 
         // Produk 1
         $product1 = Product::updateOrCreate(
-            ['slug' => 'kamera-sony-a7'],
+            ['slug' => 'Kayu-Box'],
             [
-                'name' => 'Kamera Sony A7',
-                'description' => 'Kamera profesional full frame',
-                'price' => 15000000,
-                'rental_price' => 150000,
+                'name' => 'Kotak Penyimpanan Kayu',
+                'description' => 'Dari Kayu Premium',
+                'price' => 150000,
+                'rental_price' => null,
                 'rental_unit' => 'day',
                 'stock' => 10,
-                'category_id' => $kameraCategory->id ?? 1,
+                'category_id' => $kerajinanCategory->id ?? 1,
+                'is_featured' => true,
             ]
         );
 
         // Produk 2
         $product2 = Product::updateOrCreate(
-            ['slug' => 'tripod'],
+            ['slug' => 'souvenir'],
             [
-                'name' => 'Tripod Kamera',
-                'description' => 'Tripod ringan untuk fotografi',
-                'price' => 300000,
-                'rental_price' => 20000,
+                'name' => 'Suvenir',
+                'description' => 'Suvenir unik untuk acara pernikahan',
+                'price' => null,
+                'rental_price' => 50000,
                 'rental_unit' => 'day',
                 'stock' => 15,
-                'category_id' => $aksesorisCategory->id ?? 1,
+                'category_id' => $souvenirCategory->id ?? 1,
+                'is_featured' => true,
             ]
         );
 
         // Produk 3
         $product3 = Product::updateOrCreate(
-            ['slug' => 'memory-card'],
+            ['slug' => 'souvenir1'],
             [
-                'name' => 'Memory Card 128GB',
-                'description' => 'Kecepatan tinggi',
-                'price' => 250000,
+                'name' => 'Souvenir',
+                'description' => 'Souvenir unik untuk acara pernikahan',
+                'price' => null,
+                'rental_price' => 50000,
+                'rental_unit' => 'day',
+                'stock' => 50,
+                'category_id' => $souvenirCategory->id ?? 1,
+                'is_featured' => false,
+            ]
+        );
+
+        $product5 = Product::updateOrCreate(
+            ['slug' => 'souvenir2'],
+            [
+                'name' => 'Souvenir',
+                'description' => 'Souvenir unik untuk acara pernikahan',
+                'price' => null,
+                'rental_price' => 50000,
+                'rental_unit' => 'day',
+                'stock' => 30,
+                'category_id' => $souvenirCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product6 = Product::updateOrCreate(
+            ['slug' => 'souvenir3'],
+            [
+                'name' => 'Souvenir',
+                'description' => 'Souvenir unik untuk acara pernikahan',
+                'price' => null,
+                'rental_price' => 50000,
+                'rental_unit' => 'day',
+                'stock' => 30,
+                'category_id' => $souvenirCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product7 = Product::updateOrCreate(
+            ['slug' => 'suvenir4'],
+            [
+                'name' => 'Souvenir',
+                'description' => 'Souvenir unik untuk acara pernikahan',
+                'price' => null,
+                'rental_price' => 50000,
+                'rental_unit' => 'day',
+                'stock' => 30,
+                'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product8 = Product::updateOrCreate(
+            ['slug' => 'cincin1'],
+            [
+                'name' => 'Cincin Pernikahan',
+                'description' => 'Cincin untuk acara pernikahan',
+                'price' => 450000,
                 'rental_price' => null,
                 'rental_unit' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
             ]
         );
+
+        $product9 = Product::updateOrCreate(
+            ['slug' => 'cincin2'],
+            [
+                'name' => 'Cincin Pernikahan',
+                'description' => 'Cincin untuk acara pernikahan',
+                'price' => 450000,
+                'rental_price' => null,
+                'rental_unit' => null,
+                'stock' => 30,
+                'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product10 = Product::updateOrCreate(
+            ['slug' => 'cincin3'],
+            [
+                'name' => 'Cincin Pernikahan',
+                'description' => 'Cincin untuk acara pernikahan',
+                'price' => 450000,
+                'rental_price' => null,
+                'rental_unit' => null,
+                'stock' => 30,
+                'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product11 = Product::updateOrCreate(
+            ['slug' => 'cincin4'],
+            [
+                'name' => 'Cincin Pernikahan',
+                'description' => 'Cincin untuk acara pernikahan',
+                'price' => 450000,
+                'rental_price' => null,
+                'rental_unit' => null,
+                'stock' => 30,
+                'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product12 = Product::updateOrCreate(
+            ['slug' => 'cincin5'],
+            [
+                'name' => 'Cincin Pernikahan',
+                'description' => 'Cincin untuk acara pernikahan',
+                'price' => 450000,
+                'rental_price' => null,
+                'rental_unit' => null,
+                'stock' => 30,
+                'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product14 = Product::updateOrCreate(
+            ['slug' => 'cincin6'],
+            [
+                'name' => 'Cincin Pernikahan',
+                'description' => 'Cincin untuk acara pernikahan',
+                'price' => 450000,
+                'rental_price' => null,
+                'rental_unit' => null,
+                'stock' => 30,
+                'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product15 = Product::updateOrCreate(
+            ['slug' => 'cincin7'],
+            [
+                'name' => 'Cincin Pernikahan',
+                'description' => 'Cincin untuk acara pernikahan',
+                'price' => 450000,
+                'rental_price' => null,
+                'rental_unit' => null,
+                'stock' => 30,
+                'category_id' => $aksesorisCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $product16 = Product::updateOrCreate(
+            ['slug' => 'wadah-kayu'],
+            [
+                'name' => 'Wadah Kayu',
+                'description' => 'Wadah untuk menyimpan',
+                'price' => 150000,
+                'rental_price' => null,
+                'rental_unit' => null,
+                'stock' => 30,
+                'category_id' => $kerajinanCategory->id ?? 1,
+                'is_featured' => true,
+            ]
+        );
+
 
         $this->command->info('✅ Products created');
 
@@ -119,14 +278,91 @@ class DatabaseSeeder extends Seeder
 
         $product2->images()->createMany([
             [
-                'image_path' => 'images/kotak2.jpeg',
+                'image_path' => 'images/kotak4.jpg',
                 'is_primary' => true,
             ],
         ]);
 
         $product3->images()->createMany([
             [
-                'image_path' => 'images/kotak3.jpeg',
+                'image_path' => 'images/kotak6.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product5->images()->createMany([
+            [
+                'image_path' => 'images/kotak5.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product6->images()->createMany([
+            [
+                'image_path' => 'images/kotak6.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product7->images()->createMany([
+            [
+                'image_path' => 'images/kotak7.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product8->images()->createMany([
+            [
+                'image_path' => 'images/gambar8.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product9->images()->createMany([
+            [
+                'image_path' => 'images/gambar9.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product10->images()->createMany([
+            [
+                'image_path' => 'images/gambar10.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product11->images()->createMany([
+            [
+                'image_path' => 'images/gambar11.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product12->images()->createMany([
+            [
+                'image_path' => 'images/gambar12.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product14->images()->createMany([
+            [
+                'image_path' => 'images/gambar14.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product15->images()->createMany([
+            [
+                'image_path' => 'images/gambar15.jpg',
+                'is_primary' => true,
+            ],
+        ]);
+
+        $product16->images()->createMany([
+            [
+                'image_path' => 'images/gambar16.jpg',
                 'is_primary' => true,
             ],
         ]);

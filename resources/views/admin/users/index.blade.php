@@ -1,7 +1,7 @@
 {{-- resources/views/admin/users/index.blade.php --}}
 @extends('layouts.admin')
 
-@section('page-title', 'Daftar Tamu Kehormatan')
+@section('page-title', 'Daftar Pengguna')
 
 @section('content')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -9,7 +9,7 @@
 <div class="container-fluid py-4 luxury-admin animate__animated animate__fadeIn">
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden blur-card">
         
-        {{-- Header Tema Biru & Emas --}}
+        {{-- Header --}}
         <div class="card-header p-4 wedding-gradient text-center">
             <div class="animate__animated animate__zoomIn">
                 <h4 class="mb-0 serif text-white italic" style="letter-spacing: 2px;">Daftar Anggota Eksklusif</h4>
@@ -19,91 +19,175 @@
         </div>
 
         <div class="card-body bg-white p-4">
-            {{-- Table --}}
             <div class="table-responsive">
                 <table class="table table-hover align-middle custom-table mb-0">
                     <thead>
                         <tr>
-                            <th width="100" class="text-center small-caps">ID</th>
+                            <th width="90" class="text-center small-caps">ID</th>
                             <th width="120" class="text-center small-caps">Profil</th>
-                            <th class="small-caps">Identitas User</th>
-                            <th class="small-caps">Alamat Email</th>
-                            <th width="250" class="text-end small-caps pe-5">Tanggal Bergabung</th>
+                            <th class="small-caps">Nama</th>
+                            <th class="small-caps">Email</th>
+                            <th class="small-caps text-center">Role</th>
+                            <th width="200" class="text-end small-caps pe-5">Tanggal</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         @foreach ($users as $index => $user)
-                            <tr class="product-row animate__animated animate__fadeInUp" style="animation-delay: {{ 0.1 + ($index * 0.05) }}s">
+                            <tr class="product-row animate__animated animate__fadeInUp"
+                                style="animation-delay: {{ 0.1 + ($index * 0.05) }}s">
+
+                                {{-- ID --}}
                                 <td class="text-center">
-                                    <span class="text-muted font-monospace small">#{{ str_pad($user->id, 4, '0', STR_PAD_LEFT) }}</span>
+                                    <span class="text-muted font-monospace small">
+                                        #{{ str_pad($user->id, 4, '0', STR_PAD_LEFT) }}
+                                    </span>
                                 </td>
+
+                                {{-- Avatar --}}
                                 <td class="text-center">
                                     <div class="image-container">
                                         <div class="no-image-placeholder shadow-sm rounded-circle border-2 border-white">
-                                            <span class="serif fw-bold text-uppercase">{{ substr($user->name, 0, 1) }}</span>
+                                            <span class="serif fw-bold text-uppercase">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </span>
                                         </div>
                                     </div>
                                 </td>
+
+                                {{-- Nama --}}
                                 <td>
-                                    <div class="product-info">
-                                        <div class="fw-bold text-navy h6 mb-0 serif">{{ $user->name }}</div>
-                                        <span class="badge badge-category italic">Verified Member</span>
+                                    <div class="fw-bold text-navy h6 mb-0 serif">
+                                        {{ $user->name }}
                                     </div>
                                 </td>
+
+                                {{-- Email --}}
                                 <td>
-                                    <span class="text-muted italic" style="font-size: 0.9rem;">{{ $user->email }}</span>
+                                    <span class="text-muted italic" style="font-size: 0.9rem;">
+                                        {{ $user->email }}
+                                    </span>
                                 </td>
+
+                                {{-- ROLE (BARU) --}}
+                                <td class="text-center">
+                                    @php
+                                        $role = $user->role ?? 'user';
+
+                                        $badge = 'bg-secondary';
+
+                                        if ($role == 'admin') {
+                                            $badge = 'bg-danger';
+                                        } elseif ($role == 'seller') {
+                                            $badge = 'bg-primary';
+                                        } elseif ($role == 'user') {
+                                            $badge = 'bg-success';
+                                        }
+                                    @endphp
+
+                                    <span class="badge {{ $badge }} px-3 py-2 rounded-pill">
+                                        {{ ucfirst($role) }}
+                                    </span>
+                                </td>
+
+                                {{-- Tanggal --}}
                                 <td class="text-end pe-5">
-                                    <div class="price-wrapper">
-                                        <span class="price-tag px-4">{{ $user->created_at->format('d M Y') }}</span>
-                                    </div>
+                                    <span class="price-tag px-4">
+                                        {{ $user->created_at->format('d M Y') }}
+                                    </span>
                                 </td>
+
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
+
     </div>
-    
-    {{-- Footer Estetik --}}
+
     <div class="text-center mt-4 animate__animated animate__fadeInUp" style="animation-delay: 0.8s">
-        <p class="small-caps opacity-50 italic" style="font-size: 0.6rem;">Royal Inventory System &bull; Bandung Edition</p>
+        <p class="small-caps opacity-50 italic" style="font-size: 0.6rem;">
+            Royal Inventory System • Bandung Edition
+        </p>
     </div>
 </div>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
-
     :root {
-        --royal-navy: #0d6efd;
-        --deep-azure: #0d6efd;
+        --royal-navy: #1e3a8a;
         --soft-blue: #f0f7ff;
         --navy-light: #e3f2fd;
-        --luxury-gold: #c5a059;
-        --gold-dark: #af8b46;
     }
 
-    .luxury-admin { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fbff; min-height: 100vh; }
+    .luxury-admin {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f8fbff;
+        min-height: 100vh;
+    }
+
     .serif { font-family: 'Playfair Display', serif; }
     .text-navy { color: var(--royal-navy); }
     .italic { font-style: italic; }
-    .small-caps { font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; color: var(--royal-navy); }
 
-    .blur-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.4); }
-    .wedding-gradient { background: linear-gradient(135deg, var(--royal-navy) 0%, var(--deep-azure) 100%); border-bottom: 3px solid var(--luxury-gold); }
-
-    .custom-table thead th { background-color: var(--soft-blue); padding: 1.2rem 1rem; border: none; }
-    .product-row { transition: 0.4s ease; border-bottom: 1px solid #f1f1f1 !important; }
-    .product-row:hover { background-color: var(--soft-blue) !important; transform: scale(1.005) translateX(5px); }
-
-    .image-container { position: relative; width: 50px; height: 50px; margin: 0 auto; }
-    .no-image-placeholder { 
-        width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-        background: var(--navy-light); color: var(--luxury-gold); font-size: 1.1rem; border-radius: 50%;
+    .small-caps {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: var(--royal-navy);
     }
-    
-    .badge-category { background: var(--navy-light); color: var(--deep-azure); font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; }
-    .price-tag { background: white; border: 1px solid var(--navy-light); color: var(--royal-navy); padding: 6px 15px; border-radius: 50px; font-weight: 800; border-left: 4px solid var(--luxury-gold); box-shadow: 2px 2px 10px rgba(0,0,0,0.02); }
+
+    .blur-card {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.4);
+    }
+
+    .wedding-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    }
+
+    .custom-table thead th {
+        background-color: var(--soft-blue);
+        border: none;
+        padding: 1rem;
+    }
+
+    .product-row {
+        transition: .3s;
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+    .product-row:hover {
+        background: var(--soft-blue);
+        transform: translateX(4px);
+    }
+
+    .image-container {
+        width: 45px;
+        height: 45px;
+        margin: auto;
+    }
+
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background: var(--navy-light);
+        border-radius: 50%;
+        color:#1e3a8a;
+        font-weight:700;
+    }
+
+    .price-tag {
+        background:white;
+        border:1px solid var(--navy-light);
+        padding:6px 14px;
+        border-radius:50px;
+        font-weight:700;
+    }
 </style>
+
 @endsection
