@@ -90,7 +90,7 @@
                                     <i class="bi bi-eye"></i>
                                 </a>
 
-                                <form action="{{ route('admin.orders.update-status', $order) }}"
+                                <form action="{{ route('admin.orders.updateStatus', $order) }}"
                                       method="POST">
                                     @csrf
                                     @method('PATCH')

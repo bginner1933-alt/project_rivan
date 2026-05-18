@@ -109,6 +109,7 @@
                                 </li>
                                 <li><a class="dropdown-item py-2 px-3 rounded-3 mx-2 w-auto mb-1 hover-lift-sm" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2 text-primary"></i> Profil Saya</a></li>
                                 <li><a class="dropdown-item py-2 px-3 rounded-3 mx-2 w-auto mb-1 hover-lift-sm" href="{{ route('orders.index') }}"><i class="bi bi-bag-check me-2 text-success"></i> Pesanan Saya</a></li>
+                                <li><a class="dropdown-item py-2 px-3 rounded-3 mx-2 w-auto mb-1 hover-lift-sm" href="{{ route('chat.index') }}"><i class="bi bi-chat me-2 text-info"></i> Chat Admin</a></li>
                                 @if(auth()->user()->isAdmin())
                                     <li><hr class="dropdown-divider opacity-50"></li>
                                     <li><a class="dropdown-item py-2 px-3 rounded-3 mx-2 w-auto mb-1 bg-soft-primary text-primary fw-bold" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Admin Panel</a></li>

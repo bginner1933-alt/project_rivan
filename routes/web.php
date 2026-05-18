@@ -17,6 +17,11 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\MidtransNotificationController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\RentalController;
+use App\Http\Controllers\RatingController;
+use App\Http\Controllers\ChatController;
+
+
 use App\Http\Controllers\Admin\LaporanPengaduanController;
 use App\Http\Controllers\Admin\PendapatanController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -24,9 +29,9 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\RentalController;
-use App\Http\Controllers\RatingController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\LaporanController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -140,6 +145,15 @@ Route::middleware('auth')->group(function () {
     // BANTUAN/PENGADUAN USER
     Route::get('/bantuan', [LaporanPengaduanController::class, 'index'])->name('bantuan');
     Route::post('/bantuan', [LaporanPengaduanController::class, 'store'])->name('pengaduan.store');
+
+    // Halaman utama chat (daftar kontak)
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    
+    // Membuka ruang chat dengan user tertentu
+    Route::get('/chat/{receiverId}', [ChatController::class, 'index'])->name('chat.show');
+    
+    // Mengirim pesan ke user tertentu
+    Route::post('/chat/send/{receiverId}', [ChatController::class, 'sendMessage'])->name('chat.send');
 });
 
 /*
@@ -174,13 +188,6 @@ Route::middleware(['auth', 'admin'])
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::get('orders/pending', [AdminOrderController::class, 'pendingOrders'])->name('orders.pending');
 
-    // REPORTS & PENDAPATAN
-    Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('reports/sales/export', [ReportController::class, 'exportSales'])->name('reports.export-sales');
-    
-    // Gunakan salah satu saja (dari AdminController atau PendapatanController)
-    Route::get('/pendapatan', [PendapatanController::class, 'index'])->name('pendapatan');
-
     // USERS
     Route::resource('users', UserController::class)->only(['index', 'show', 'destroy']);
 
@@ -194,15 +201,26 @@ Route::middleware(['auth', 'admin'])
 
     /*
     |--------------------------------------------------------------------------
-    | LAPORAN PENGADUAN (ADMIN)
+    | STRATEGI PEMISAHAN 3 CONTROLLER (REPORTS, LAPORAN, PENGADUAN)
     |--------------------------------------------------------------------------
     */
     
-    // Perbaikan: LaporanController diganti ke ReportController atau LaporanPengaduanController
-    Route::get('/laporan', [ReportController::class, 'index'])->name('laporan.index');
+    // 1. REPORT CONTROLLER (Laporan Penjualan / Sales & Pendapatan)
+    Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('reports/sales/export', [ReportController::class, 'exportSales'])->name('reports.export-sales');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index'); 
 
-    Route::get('/laporanpengaduan', [AdminController::class, 'laporanPengaduan'])->name('laporanpengaduan.index');
-    Route::get('/laporanpengaduan/{id}', [AdminController::class, 'show'])->name('laporanpengaduan.show');
+    // 2. LAPORAN CONTROLLER (Jika ada Laporan Finansial/Pendapatan Lain)
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/pendapatan', [PendapatanController::class, 'index'])->name('pendapatan');
+
+    // 3. LAPORAN PENGADUAN CONTROLLER (Sesuai Tombol Detail di File Blade Anda)
+    Route::get('/laporan-pengaduan', [LaporanPengaduanController::class, 'adminIndex'])
+        ->name('laporanpengaduan.index');
+
+    Route::get('/laporan-pengaduan/{id}', [LaporanPengaduanController::class, 'show'])
+        ->name('laporanpengaduan.show'); 
+        // ^ Menggunakan 'laporanpengaduan.show' agar sinkron dengan href di blade pengaduan Anda
 });
 
 /*

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Category;
@@ -66,13 +67,13 @@ class AdminController extends Controller
     }
 
    public function show($id)
-{
-    // Ambil data laporan pengaduan berdasarkan ID
-    $laporan = LaporanPengaduan::findOrFail($id);
+    {
+        // Ambil data laporan pengaduan berdasarkan ID
+        $laporan = LaporanPengaduan::findOrFail($id);
 
-    // Tampilkan view
-    return view('admin.laporan.show', compact('laporan'));
-}
+        // Tampilkan view
+        return view('admin.laporan.show', compact('laporan'));
+    }
     public function stokMenipis()
     {
         // Ambil produk yang stoknya di bawah batas (misal: 5)
@@ -127,6 +128,6 @@ class AdminController extends Controller
         $laporan = LaporanPengaduan::latest()->get();
 
         // 2. Kirim data ke view admin.laporan.index
-        return view('admin.laporan.index', compact('laporan'));
+        return view('admin.reports.index', compact('laporan'));
     }
 }

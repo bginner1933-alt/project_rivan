@@ -1,401 +1,256 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Pengaduan')
+@section('title', 'Laporan Penjualan')
 
 @section('content')
 
-<style>
-    :root{
-        --primary-blue:#2563eb;
-        --soft-blue:#eff6ff;
-        --dark-blue:#1e3a8a;
-        --border-blue:#dbeafe;
-    }
+@php
+    $totalRevenue = $summary->total_revenue ?? 0;
+@endphp
 
-    body{
-        background:#f4f8ff;
-    }
+<div class="report-bg py-4">
 
-    .page-header{
-        background:linear-gradient(135deg,#2563eb,#3b82f6);
-        border-radius:24px;
-        padding:32px;
-        color:white;
-        box-shadow:0 15px 40px rgba(37,99,235,.2);
-    }
+    <div class="container-fluid">
 
-    .page-header h1{
-        font-weight:800;
-        letter-spacing:-1px;
-    }
-
-    .modern-card{
-        border:none;
-        border-radius:24px;
-        overflow:hidden;
-        background:white;
-        box-shadow:0 10px 35px rgba(0,0,0,.05);
-    }
-
-    .modern-card .card-header{
-        background:white;
-        border-bottom:1px solid #eef2ff;
-        padding:22px 28px;
-    }
-
-    .table-modern{
-        margin-bottom:0;
-    }
-
-    .table-modern thead{
-        background:#f8fbff;
-    }
-
-    .table-modern thead th{
-        border:none;
-        color:#64748b;
-        font-size:.75rem;
-        text-transform:uppercase;
-        letter-spacing:.5px;
-        font-weight:700;
-        padding:18px 16px;
-        white-space:nowrap;
-    }
-
-    .table-modern tbody tr{
-        transition:.2s ease;
-    }
-
-    .table-modern tbody tr:hover{
-        background:#f8fbff;
-    }
-
-    .table-modern tbody td{
-        padding:18px 16px;
-        border-color:#f1f5f9;
-        vertical-align:middle;
-    }
-
-    .badge-custom{
-        border-radius:50px;
-        padding:8px 14px;
-        font-size:.75rem;
-        font-weight:700;
-    }
-
-    .badge-rusak{
-        background:#fee2e2;
-        color:#dc2626;
-    }
-
-    .badge-pengiriman{
-        background:#fef3c7;
-        color:#d97706;
-    }
-
-    .badge-layanan{
-        background:#dbeafe;
-        color:#2563eb;
-    }
-
-    .badge-lainnya{
-        background:#cffafe;
-        color:#0891b2;
-    }
-
-    .order-badge{
-        background:#eff6ff;
-        color:#2563eb;
-        border:1px solid #bfdbfe;
-        padding:7px 12px;
-        border-radius:12px;
-        font-size:.75rem;
-        font-weight:700;
-    }
-
-    .btn-view{
-        background:linear-gradient(135deg,#2563eb,#3b82f6);
-        border:none;
-        color:white;
-        border-radius:12px;
-        padding:9px 16px;
-        font-size:.8rem;
-        font-weight:600;
-        transition:.3s;
-    }
-
-    .btn-view:hover{
-        transform:translateY(-2px);
-        color:white;
-        box-shadow:0 10px 20px rgba(37,99,235,.2);
-    }
-
-    .btn-file{
-        border-radius:12px;
-        padding:8px 14px;
-        font-size:.8rem;
-        font-weight:600;
-        border:1px solid #bfdbfe;
-        color:#2563eb;
-        background:#eff6ff;
-        transition:.3s;
-    }
-
-    .btn-file:hover{
-        background:#2563eb;
-        color:white;
-    }
-
-    .empty-state{
-        padding:70px 20px;
-    }
-
-    .empty-icon{
-        width:90px;
-        height:90px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        margin:auto;
-        border-radius:50%;
-        background:#eff6ff;
-        color:#2563eb;
-        font-size:2rem;
-    }
-
-    .text-message{
-        max-width:220px;
-    }
-
-    .table-responsive{
-        border-radius:20px;
-    }
-</style>
-
-<div class="container-fluid px-4 py-4">
-
-    {{-- HEADER --}}
-    <div class="page-header mb-4">
-
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-
+        {{-- HEADER --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="mb-2">
-                    Data Laporan Pengaduan
-                </h1>
+                <h3 class="fw-bold mb-0">Laporan Penjualan</h3>
+                <small class="text-muted">
+                    Analisis performa bisnis Anda
+                </small>
+            </div>
+        </div>
 
-                <p class="mb-0 opacity-75">
-                    Kelola dan pantau seluruh laporan pelanggan dengan tampilan modern.
-                </p>
+        {{-- FILTER --}}
+        <div class="filter-card mb-4">
+
+            <form method="GET" class="row g-3 align-items-end">
+
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">
+                        Dari
+                    </label>
+
+                    <input
+                        type="date"
+                        name="date_from"
+                        value="{{ $dateFrom }}"
+                        class="form-control clean-input"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">
+                        Sampai
+                    </label>
+
+                    <input
+                        type="date"
+                        name="date_to"
+                        value="{{ $dateTo }}"
+                        class="form-control clean-input"
+                    >
+                </div>
+
+                <div class="col-md-6 d-flex gap-2">
+
+                    <button class="btn btn-primary px-4">
+                        Filter
+                    </button>
+
+                    <a href="{{ route('admin.reports.export-sales', request()->all()) }}"
+                       class="btn btn-success px-4">
+                        Export
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        {{-- SUMMARY --}}
+        <div class="row g-4 mb-4">
+
+            {{-- TOTAL REVENUE --}}
+            <div class="col-md-4">
+                <div class="metric-card">
+
+                    <div class="label">
+                        Total Revenue
+                    </div>
+
+                    <div class="value">
+                        Rp {{ number_format($summary->total_revenue ?? 0, 0, ',', '.') }}
+                    </div>
+
+                </div>
             </div>
 
-            <div class="text-end">
-                <div class="bg-white bg-opacity-10 rounded-4 px-4 py-3">
-                    <small class="d-block opacity-75">
-                        Total Pengaduan
-                    </small>
+            {{-- TOTAL ORDERS --}}
+            <div class="col-md-4">
+                <div class="metric-card">
 
-                    <h3 class="fw-bold mb-0">
-                        {{ count($laporan) }}
-                    </h3>
+                    <div class="label">
+                        Total Orders
+                    </div>
+
+                    <div class="value">
+                        {{ number_format($summary->total_orders ?? 0) }}
+                    </div>
+
                 </div>
             </div>
 
         </div>
 
-    </div>
+        {{-- CONTENT --}}
+        <div class="row g-4">
 
-    {{-- CARD --}}
-    <div class="modern-card">
+            {{-- CATEGORY --}}
+            <div class="col-lg-4">
 
-        <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="panel-card">
 
-            <div>
-                <h5 class="fw-bold mb-1 text-dark">
-                    Daftar Pengaduan
-                </h5>
+                    <div class="panel-title">
+                        Performa Kategori
+                    </div>
 
-                <small class="text-muted">
-                    Seluruh laporan terbaru pelanggan
-                </small>
-            </div>
+                    @forelse($byCategory ?? [] as $cat)
 
-            <div>
-                <span class="badge bg-primary rounded-pill px-3 py-2">
-                    Admin Panel
-                </span>
-            </div>
+                        @php
+                            $percentage = $totalRevenue > 0
+                                ? ($cat->total / $totalRevenue) * 100
+                                : 0;
+                        @endphp
 
-        </div>
+                        <div class="cat-item">
 
-        <div class="card-body p-0">
+                            <div class="d-flex justify-content-between align-items-center">
 
-            <div class="table-responsive">
-
-                <table class="table table-modern align-middle">
-
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Tanggal</th>
-                            <th>Nama Pelapor</th>
-                            <th>Order ID</th>
-                            <th>Kategori</th>
-                            <th>Pesan</th>
-                            <th>Lampiran</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        @forelse($laporan as $index => $item)
-
-                            @php
-                                $badgeClass = 'badge-lainnya';
-
-                                if ($item->category == 'rusak') {
-                                    $badgeClass = 'badge-rusak';
-                                } elseif ($item->category == 'pengiriman') {
-                                    $badgeClass = 'badge-pengiriman';
-                                } elseif ($item->category == 'layanan') {
-                                    $badgeClass = 'badge-layanan';
-                                }
-                            @endphp
-
-                            <tr>
-
-                                {{-- NOMOR --}}
-                                <td class="fw-bold text-primary">
-                                    #{{ $index + 1 }}
-                                </td>
-
-                                {{-- TANGGAL --}}
-                                <td>
-                                    <div class="fw-semibold text-dark small">
-                                        {{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}
+                                <div>
+                                    <div class="fw-semibold">
+                                        {{ $cat->name }}
                                     </div>
 
                                     <small class="text-muted">
-                                        {{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }} WIB
+                                        {{ number_format($percentage, 1) }}%
                                     </small>
-                                </td>
+                                </div>
 
-                                {{-- NAMA --}}
-                                <td>
-                                    <div class="fw-bold text-dark">
-                                        {{ $item->name }}
-                                    </div>
-                                </td>
+                                <strong>
+                                    Rp {{ number_format($cat->total, 0, ',', '.') }}
+                                </strong>
 
-                                {{-- ORDER --}}
-                                <td>
+                            </div>
 
-                                    @if($item->order_id)
+                            <div class="bar">
+                                <div
+                                    style="width: {{ min($percentage, 100) }}%">
+                                </div>
+                            </div>
 
-                                        <span class="order-badge">
-                                            #{{ $item->order_id }}
-                                        </span>
+                        </div>
 
-                                    @else
+                    @empty
 
-                                        <span class="text-muted small">
-                                            Tidak ada
-                                        </span>
+                        <div class="text-center text-muted py-4">
+                            Tidak ada data kategori
+                        </div>
 
-                                    @endif
+                    @endforelse
 
-                                </td>
+                </div>
 
-                                {{-- KATEGORI --}}
-                                <td>
+            </div>
 
-                                    <span class="badge-custom {{ $badgeClass }}">
-                                        {{ ucfirst($item->category) }}
-                                    </span>
+            {{-- TABLE --}}
+            <div class="col-lg-8">
 
-                                </td>
+                <div class="panel-card">
 
-                                {{-- PESAN --}}
-                                <td>
+                    <div class="panel-title">
+                        Transaksi
+                    </div>
 
-                                    <div class="text-message text-truncate"
-                                         title="{{ $item->message }}">
+                    <div class="table-responsive">
 
-                                        {{ $item->message }}
+                        <table class="table modern-table align-middle">
 
-                                    </div>
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Tanggal</th>
+                                    <th>Customer</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
 
-                                </td>
+                            <tbody>
 
-                                {{-- LAMPIRAN --}}
-                                <td>
+                                @forelse($orders ?? [] as $order)
 
-                                    @if($item->attachment_path)
+                                    <tr>
 
-                                        <a href="{{ asset('storage/' . $item->attachment_path) }}"
-                                           target="_blank"
-                                           class="btn btn-file">
+                                        <td>
+                                            <a href="{{ route('admin.orders.show', $order) }}"
+                                               class="order-id">
 
-                                            <i class="fas fa-paperclip me-1"></i>
-                                            Lihat
+                                                #{{ $order->order_number }}
 
-                                        </a>
+                                            </a>
+                                        </td>
 
-                                    @else
+                                        <td class="text-muted">
+                                            {{ $order->created_at->format('d M Y') }}
+                                        </td>
 
-                                        <span class="text-muted small fst-italic">
-                                            Tidak ada
-                                        </span>
+                                        <td>
 
-                                    @endif
+                                            <div class="fw-semibold">
+                                                {{ $order->user->name ?? 'User Deleted' }}
+                                            </div>
 
-                                </td>
+                                            <small class="text-muted">
+                                                {{ $order->user->email ?? '-' }}
+                                            </small>
 
-                                {{-- AKSI --}}
-                                <td class="text-center">
+                                        </td>
 
-                                    <a href="{{ route('admin.laporanpengaduan.show', $item->id) }}"
-                                       class="btn btn-view">
+                                        <td class="text-end fw-bold">
+                                            Rp {{ number_format($order->total_amount, 0, ',', '.') }}
+                                        </td>
 
-                                        <i class="fas fa-eye me-1"></i>
-                                        Detail
+                                    </tr>
 
-                                    </a>
+                                @empty
 
-                                </td>
+                                    <tr>
+                                        <td colspan="4"
+                                            class="text-center text-muted py-5">
 
-                            </tr>
+                                            Tidak ada transaksi
 
-                        @empty
+                                        </td>
+                                    </tr>
 
-                            <tr>
-                                <td colspan="8">
+                                @endforelse
 
-                                    <div class="empty-state text-center">
+                            </tbody>
 
-                                        <div class="empty-icon mb-4">
-                                            <i class="fas fa-inbox"></i>
-                                        </div>
+                        </table>
 
-                                        <h5 class="fw-bold text-dark">
-                                            Belum Ada Pengaduan
-                                        </h5>
+                    </div>
 
-                                        <p class="text-muted mb-0">
-                                            Semua laporan pelanggan akan muncul di sini secara otomatis.
-                                        </p>
+                    {{-- PAGINATION --}}
+                    @if(isset($orders) && method_exists($orders, 'links'))
+                        <div class="mt-3">
+                            {{ $orders->appends(request()->all())->links() }}
+                        </div>
+                    @endif
 
-                                    </div>
-
-                                </td>
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                </table>
+                </div>
 
             </div>
 
@@ -404,5 +259,112 @@
     </div>
 
 </div>
+
+{{-- STYLE --}}
+<style>
+
+.report-bg{
+    background:#f5f7fb;
+    min-height:100vh;
+}
+
+/* FILTER */
+.filter-card{
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.04);
+}
+
+/* INPUT */
+.clean-input{
+    border-radius:10px;
+    border:1px solid #e5e9f2;
+    padding:10px;
+}
+
+/* METRIC */
+.metric-card{
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.04);
+}
+
+.metric-card .label{
+    font-size:12px;
+    color:#888;
+    text-transform:uppercase;
+}
+
+.metric-card .value{
+    font-size:24px;
+    font-weight:700;
+    margin-top:5px;
+}
+
+/* PANEL */
+.panel-card{
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.04);
+    height:100%;
+}
+
+.panel-title{
+    font-weight:700;
+    margin-bottom:20px;
+    font-size:16px;
+}
+
+/* CATEGORY */
+.cat-item{
+    margin-bottom:18px;
+}
+
+.bar{
+    height:7px;
+    background:#eef2f7;
+    border-radius:999px;
+    margin-top:8px;
+    overflow:hidden;
+}
+
+.bar div{
+    height:100%;
+    background:#4f8cff;
+    border-radius:999px;
+    transition:.3s ease;
+}
+
+/* TABLE */
+.modern-table{
+    font-size:14px;
+}
+
+.modern-table thead th{
+    border-bottom:1px solid #eef2f7;
+    color:#777;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+}
+
+.modern-table tbody tr{
+    border-color:#f3f4f6;
+}
+
+.order-id{
+    text-decoration:none;
+    font-weight:600;
+    color:#4f8cff;
+}
+
+.order-id:hover{
+    color:#2563eb;
+}
+
+</style>
 
 @endsection

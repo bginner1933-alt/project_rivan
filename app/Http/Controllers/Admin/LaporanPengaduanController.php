@@ -8,11 +8,30 @@ use App\Http\Controllers\Controller;
 
 class LaporanPengaduanController extends Controller
 {
-    public function index()
+    /**
+     * Menampilkan HALAMAN ADMIN (Daftar Pengaduan Pelanggan)
+     */
+    public function adminIndex()
     {
-        return view('bantuan    ');
+        // Mengambil data pengaduan terbaru dan membaginya menjadi 10 data per halaman
+        $laporan = LaporanPengaduan::latest()->paginate(10);
+
+        // Mengarah ke file blade admin yang berisi tabel data modern Anda tadi
+        // Pastikan nama file blade Anda sesuai (misal: resources/views/admin/reports/index.blade.php)
+        return view('admin.reports.index', compact('laporan'));
     }
 
+    /**
+     * Menampilkan HALAMAN USER (Form Input Pengaduan / Bantuan)
+     */
+    public function index()
+    {
+        return view('bantuan');
+    }
+
+    /**
+     * Menyimpan input pengaduan dari Form User ke Database
+     */
     public function store(Request $request)
     {
         // 1. Validasi input form
@@ -43,5 +62,11 @@ class LaporanPengaduanController extends Controller
 
         // 4. Redirect kembali dengan pesan sukses
         return redirect()->back()->with('success', 'Laporan pengaduan berhasil dikirim. Tim kami akan segera membantu Anda!');
+    }
+
+    public function show($id)
+    {
+        $item = LaporanPengaduan::findOrFail($id);
+        return view('admin.reports.show', compact('item')); // Sesuaikan dengan nama file blade detail Anda
     }
 }

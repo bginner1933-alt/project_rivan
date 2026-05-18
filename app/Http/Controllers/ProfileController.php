@@ -162,4 +162,22 @@ class ProfileController extends Controller
 
         return back()->with('success', 'Akun Google berhasil diputuskan.');
     }
+
+    public function destroyAvatar()
+    {
+        $user = Auth::user();
+
+        // Hapus file avatar jika ada
+        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        // Kosongkan kolom avatar di database
+        $user->avatar = null;
+        $user->save();
+
+        return redirect()
+            ->route('profile.edit')
+            ->with('success', 'Avatar berhasil dihapus.');
+    }
 }

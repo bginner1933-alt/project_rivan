@@ -31,9 +31,9 @@ class OrderController extends Controller
      * ORDER YANG PERLU DIPROSES
      */
     public function pendingOrders()
-{
-    dd(Order::pluck('status'));
-}
+    {
+        dd(Order::pluck('status'));
+    }
 
     /**
      * DETAIL ORDER
@@ -57,18 +57,55 @@ class OrderController extends Controller
         $oldStatus = strtolower($order->status);
         $newStatus = strtolower($request->status);
 
-        // RESTOCK jika cancel
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI PEMBAYARAN
+        |--------------------------------------------------------------------------
+        */
+
+        // anggap field payment_status = paid / unpaid
+        $paymentStatus = strtolower($order->payment_status ?? 'unpaid');
+
+        // kalau belum bayar
+        if ($paymentStatus !== 'paid') {
+
+            // tidak boleh processing/completed
+            if (in_array($newStatus, ['processing', 'completed'])) {
+
+                return back()->with(
+                    'error',
+                    'Pesanan belum dibayar, status tidak bisa diubah.'
+                );
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESTOCK JIKA CANCEL
+        |--------------------------------------------------------------------------
+        */
+
         if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+
             foreach ($order->items as $item) {
                 $item->product->increment('stock', $item->quantity);
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE STATUS
+        |--------------------------------------------------------------------------
+        */
+
         $order->update([
             'status' => $newStatus
         ]);
 
-        return back()->with('success', "Status diperbarui menjadi $newStatus");
+        return back()->with(
+            'success',
+            "Status diperbarui menjadi $newStatus"
+        );
     }
 
     /**
