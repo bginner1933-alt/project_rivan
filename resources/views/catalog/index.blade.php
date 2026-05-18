@@ -176,7 +176,6 @@
                     
                    {{-- BAGIAN KATEGORI --}}
                 <div class="mb-5">
-                    <p class="text-uppercase small fw-900 text-muted mb-3" style="letter-spacing: 1px;">Kategori</p>
 
                     <div class="mb-4">
                             <h6 class="fw-bold mb-2">Kategori</h6>

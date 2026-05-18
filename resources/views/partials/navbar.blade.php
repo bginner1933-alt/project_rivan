@@ -32,7 +32,7 @@
 
                 {{-- Brand Text --}}
                 <span class="ls-tight">
-                    Wangi <span class="text-primary">Project</span>
+                    Wangi <span class="text-primary">Shop</span>
                 </span>
             </a>
 

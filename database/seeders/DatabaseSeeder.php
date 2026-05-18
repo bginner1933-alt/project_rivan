@@ -64,7 +64,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Kotak Penyimpanan Kayu',
                 'description' => 'Dari Kayu Premium',
-                'price' => 150000,
+                'price' => 50000,
                 'rental_price' => null,
                 'rental_unit' => 'day',
                 'stock' => 10,
@@ -248,7 +248,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Wadah Kayu',
                 'description' => 'Wadah untuk menyimpan',
-                'price' => 150000,
+                'price' => 50000,
                 'rental_price' => null,
                 'rental_unit' => null,
                 'stock' => 30,

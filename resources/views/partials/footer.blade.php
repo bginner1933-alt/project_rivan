@@ -14,11 +14,11 @@
                     <div class="footer-logo me-2">
                         <i class="bi bi-bag-heart-fill"></i>
                     </div>
-                    <h5 class="fw-bold mb-0">TokoOnline</h5>
+                    <h5 class="fw-bold mb-0">WangiShop</h5>
                 </div>
 
                 <p class="text-white-50">
-                    Toko online modern dengan pengalaman belanja cepat, aman, dan nyaman.
+                    Wangi Shop adalah toko modern dengan pengalaman belanja cepat, aman, dan nyaman.
                     Produk berkualitas dengan sentuhan teknologi terbaru.
                 </p>
 
@@ -74,7 +74,7 @@
                         </a>
                     </p>
                     <p>
-                        <a href="https://wa.me/6285105051441"
+                        <a href="https://wa.me/6281382771810"
                         target="_blank"
                         class="contact-phone">
 
@@ -108,7 +108,7 @@
 
         <div class="text-center text-md-start">
             <small class="text-white-50">
-                © {{ date('Y') }} TokoOnline. All rights reserved.
+                © {{ date('Y') }} WangiShop. All rights reserved.
             </small>
         </div>
 
