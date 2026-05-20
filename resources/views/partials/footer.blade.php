@@ -14,7 +14,7 @@
                     <div class="footer-logo me-2">
                         <i class="bi bi-bag-heart-fill"></i>
                     </div>
-                    <h5 class="fw-bold mb-0">WangiShop</h5>
+                    <h5 class="fw-bold mb-0">Wangi Project</h5>
                 </div>
 
                 <p class="text-white-50">
@@ -24,14 +24,12 @@
 
                 {{-- SOCIAL MEDIA --}}
                 <div class="d-flex gap-3 mt-4">
-                    <a href="https://www.facebook.com/" target="_blank" class="social-icon">
-                        <i class="bi bi-facebook"></i>
                     </a>
                     <a href="https://www.instagram.com/wangi.project?igsh=bTF3ODdleXFkaWxk" target="_blank" class="social-icon">
                         <i class="bi bi-instagram"></i>
                     </a>
-                    <a href="https://x.com/" target="_blank" class="social-icon">
-                        <i class="bi bi-twitter-x"></i>
+                    <a href="https://tiktok.com/" target="_blank" class="social-icon">
+                        <i class="bi bi-tiktok"></i>
                     </a>
                     <a href="https://www.youtube.com/" target="_blank" class="social-icon">
                         <i class="bi bi-youtube"></i>
@@ -65,21 +63,21 @@
 
                 <div class="footer-contact">
                     <p>
-                        <a href="#" 
+                        <a href="https://www.google.com/maps/place/Kp.Sindang+Tengah+Rt+05%2F07,+Limbangan+Tengah,+Kec.+Balubur+Limbangan,+Kabupaten+Garut,+Jawa+Barat+44186/@-7.2105678,107.9078783,17z/data=!3m1!4b1!4m5!3m4!1s0x2e655d9c8a9b8f5:0x6c9e7a1c8b8f8c8!8m2!3d-7.2105678!4d107.910067?hl=id" 
                         target="_blank" 
                         class="contact-phone">
 
                             <i class="bi bi-geo-alt phone-icon"></i>
-                            Bandung, Indonesia
+                            Kp.Sindang Tengah Rt 05/07, Limbangan Tengah, Kec. Balubur Limbangan, Kabupaten Garut, Jawa Barat 44186
                         </a>
                     </p>
                     <p>
-                        <a href="https://wa.me/6281382771810"
+                        <a href="https://wa.me/628112025742"
                         target="_blank"
                         class="contact-phone">
 
                             <i class="bi bi-telephone phone-icon"></i>
-                            (+62) 81382771810
+                            (+62) 8112025742
                         </a>
                     </p>
                     <p>
@@ -108,7 +106,7 @@
 
         <div class="text-center text-md-start">
             <small class="text-white-50">
-                © {{ date('Y') }} WangiShop. All rights reserved.
+                © {{ date('Y') }} WangiProject. All rights reserved.
             </small>
         </div>
 

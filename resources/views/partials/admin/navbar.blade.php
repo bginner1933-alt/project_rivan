@@ -1,4 +1,4 @@
-<header class="admin-navbar">
+{{-- <header class="admin-navbar">
 
     <div class="navbar-left">
         <h4 class="navbar-title">
@@ -150,4 +150,4 @@
     font-size: 11px;
     color: #64748b;
 }
-</style>
+</style> --}}

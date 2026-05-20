@@ -7,8 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Chat extends Model
 {
-    protected $fillable = ['sender_id', 'receiver_id', 'message', 'is_read'];
+    protected $fillable = [
+        'sender_id',
+        'receiver_id',
+        'message',
+        'is_read',
+        'image',
 
+        'deleted_by_sender',
+        'deleted_by_receiver',
+        'deleted_for_everyone',
+    ];
     // Relasi ke User sebagai Pengirim
     public function sender(): BelongsTo
     {

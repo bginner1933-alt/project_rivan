@@ -146,14 +146,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/bantuan', [LaporanPengaduanController::class, 'index'])->name('bantuan');
     Route::post('/bantuan', [LaporanPengaduanController::class, 'store'])->name('pengaduan.store');
 
-    // Halaman utama chat (daftar kontak)
+    // ── CHAT ──────────────────────────────────────────
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-    
-    // Membuka ruang chat dengan user tertentu
-    Route::get('/chat/{receiverId}', [ChatController::class, 'index'])->name('chat.show');
-    
-    // Mengirim pesan ke user tertentu
+
+    // Spesifik dulu ↓
+    Route::post('/chat/delete-selected', [ChatController::class, 'deleteSelected'])->name('chat.delete.selected');
     Route::post('/chat/send/{receiverId}', [ChatController::class, 'sendMessage'])->name('chat.send');
+
+    // Wildcard belakangan ↓
+    Route::get('/chat/{receiverId}', [ChatController::class, 'index'])->name('chat.show');
+    Route::delete('/chat/{id}', [ChatController::class, 'destroy'])->name('chat.destroy');
 });
 
 /*
@@ -221,6 +223,15 @@ Route::middleware(['auth', 'admin'])
     Route::get('/laporan-pengaduan/{id}', [LaporanPengaduanController::class, 'show'])
         ->name('laporanpengaduan.show'); 
         // ^ Menggunakan 'laporanpengaduan.show' agar sinkron dengan href di blade pengaduan Anda
+      Route::post('/chat/delete-selected', [ChatController::class, 'deleteSelected']);
+
+Route::post('/chat/delete-selected-all', [ChatController::class, 'deleteSelectedAll'])
+    ->name('chat.deleteSelectedAll');
+    // Ubah dari Route::delete menjadi Route::post
+// Gunakan DELETE untuk standar penghapusan data
+// routes/web.php
+Route::any('/chat/delete-selected-all', [ChatController::class, 'deleteSelectedAll'])->name('chat.deleteSelectedAll');
+Route::any('/chat/delete-selected', [ChatController::class, 'deleteSelected'])->name('chat.deleteSelected');
 });
 
 /*
