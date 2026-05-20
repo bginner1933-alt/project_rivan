@@ -11,27 +11,35 @@ use Illuminate\Support\Facades\Storage;
 
 class ChatController extends Controller
 {
+    // =========================================================
     // 1. Tampilan Utama Chat
+    // =========================================================
     public function index($receiverId = null)
     {
-        $authId = Auth::id();
-        $users = User::where('id', '!=', $authId)->get();
-        $chats = collect();
+        $authId  = Auth::id();
+        $users   = User::where('id', '!=', $authId)->get();
+        $chats   = collect();
         $receiver = null;
 
         if ($receiverId) {
             $receiver = User::findOrFail($receiverId);
-            $chats = Chat::where(function ($query) use ($authId, $receiverId) {
-                $query->where('sender_id', $authId)
-                      ->where('receiver_id', $receiverId);
-            })
-            ->orWhere(function ($query) use ($authId, $receiverId) {
-                $query->where('sender_id', $receiverId)
-                      ->where('receiver_id', $authId);
-            })
-            ->orderBy('created_at', 'asc')
-            ->get();
 
+            $chats = Chat::where(function ($query) use ($authId, $receiverId) {
+                        $query->where('sender_id', $authId)
+                              ->where('receiver_id', $receiverId)
+                              // Jangan tampilkan pesan yang sudah dihapus oleh pengirim (kita)
+                              ->where('deleted_by_sender', false);
+                    })
+                    ->orWhere(function ($query) use ($authId, $receiverId) {
+                        $query->where('sender_id', $receiverId)
+                              ->where('receiver_id', $authId)
+                              // Jangan tampilkan pesan yang sudah dihapus oleh penerima (kita)
+                              ->where('deleted_by_receiver', false);
+                    })
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+
+            // Tandai pesan masuk sebagai sudah dibaca
             Chat::where('sender_id', $receiverId)
                 ->where('receiver_id', $authId)
                 ->update(['is_read' => true]);
@@ -40,7 +48,9 @@ class ChatController extends Controller
         return view('chat.index', compact('users', 'chats', 'receiver'));
     }
 
-    // 2. Fungsi Kirim Pesan
+    // =========================================================
+    // 2. Kirim Pesan
+    // =========================================================
     public function sendMessage(Request $request, $receiverId)
     {
         try {
@@ -68,81 +78,127 @@ class ChatController extends Controller
             broadcast(new MessageSent($chat))->toOthers();
 
             return response()->json(['success' => true, 'chat' => $chat]);
+
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
-    // 3. Hapus Pesan Terpilih (Untuk Diri Sendiri)
-    public function deleteSelected(Request $request)
+    // =========================================================
+    // 3. Hapus Satu Pesan (Dropdown → Hapus)
+    //    Menerima: scope = 'me' | 'all'
+    // =========================================================
+    public function destroy(Request $request, $id)
     {
         try {
-            $ids = $request->input('ids');
-            if (!$ids || !is_array($ids)) {
-                return response()->json(['success' => false, 'message' => 'Pilih pesan dahulu']);
+            $authId = Auth::id();
+            $scope  = $request->input('scope', 'me');
+
+            $chat = Chat::find($id);
+
+            if (!$chat) {
+                return response()->json(['success' => false, 'message' => 'Pesan tidak ditemukan'], 404);
             }
 
-            Chat::whereIn('id', $ids)
-                ->where(function ($q) {
-                    $q->where('sender_id', Auth::id())
-                      ->orWhere('receiver_id', Auth::id());
-                })
-                ->delete();
+            if ($scope === 'all') {
+                // ── Hapus untuk semua ────────────────────────────────
+                // Hanya boleh dilakukan oleh pengirim pesan
+                if ($chat->sender_id !== $authId) {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin'], 403);
+                }
 
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()], 500);
-        }
-    }
-
-    // 4. Hapus Pesan Terpilih (Untuk Semua Orang)
-    public function deleteSelectedAll(Request $request) 
-    {
-        try {
-            $ids = $request->input('ids');
-            
-            if (!$ids || !is_array($ids)) {
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'Server tidak menerima daftar ID.'
-                ], 400);
-            }
-
-            // Menghapus file gambar jika ada di storage sebelum data dihapus
-            $chatsWithImages = Chat::whereIn('id', $ids)->whereNotNull('image')->get();
-            foreach ($chatsWithImages as $chat) {
+                // Hapus file gambar jika ada
                 if ($chat->image) {
                     Storage::disk('public')->delete($chat->image);
                 }
+
+                $chat->delete(); // hard delete, hilang dari kedua sisi
+
+            } else {
+                // ── Hapus untuk saya ────────────────────────────────
+                // Tandai sesuai posisi user (pengirim atau penerima)
+                if ($chat->sender_id === $authId) {
+                    $chat->update(['deleted_by_sender' => true]);
+                } elseif ($chat->receiver_id === $authId) {
+                    $chat->update(['deleted_by_receiver' => true]);
+                } else {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin'], 403);
+                }
+
+                // Jika kedua sisi sudah menghapus → hard delete untuk bersihkan DB
+                $chat->refresh();
+                if ($chat->deleted_by_sender && $chat->deleted_by_receiver) {
+                    if ($chat->image) {
+                        Storage::disk('public')->delete($chat->image);
+                    }
+                    $chat->delete();
+                }
             }
 
-            // Proses Hapus Permanen
-            $deletedCount = Chat::whereIn('id', $ids)->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => $deletedCount . ' pesan berhasil dihapus untuk semua orang.'
-            ]);
+            return response()->json(['success' => true]);
 
         } catch (\Exception $e) {
-            // Jika tabel belum ada atau kolom salah, pesan error aslinya akan muncul di sini
-            return response()->json([
-                'success' => false, 
-                'message' => 'Laravel Error: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
-    // 5. Hapus Satu Pesan (Fungsi Lama)
-    public function destroy($id)
+    // =========================================================
+    // 4. Hapus Pesan Terpilih (Bulk / Selection Mode)
+    //    Menerima: ids = array, scope = 'me' | 'all'
+    // =========================================================
+    public function deleteSelected(Request $request)
     {
         try {
-            $chat = Chat::find($id);
-            if ($chat) {
-                $chat->delete();
-                return response()->json(['success' => true]);
+            $authId = Auth::id();
+            $ids    = $request->input('ids');
+            $scope  = $request->input('scope', 'me');
+
+            if (!$ids || !is_array($ids)) {
+                return response()->json(['success' => false, 'message' => 'Pilih pesan dahulu'], 422);
             }
-            return response()->json(['success' => false, 'message' => 'Pesan tidak ditemukan'], 404);
+
+            if ($scope === 'all') {
+                // ── Hapus untuk semua ────────────────────────────────
+                // Hanya pesan yang dikirim oleh kita yang boleh dihapus untuk semua
+                $chats = Chat::whereIn('id', $ids)
+                             ->where('sender_id', $authId)
+                             ->get();
+
+                foreach ($chats as $chat) {
+                    if ($chat->image) {
+                        Storage::disk('public')->delete($chat->image);
+                    }
+                    $chat->delete();
+                }
+
+            } else {
+                // ── Hapus untuk saya ────────────────────────────────
+                // Pesan yang kita kirim → tandai deleted_by_sender
+                Chat::whereIn('id', $ids)
+                    ->where('sender_id', $authId)
+                    ->update(['deleted_by_sender' => true]);
+
+                // Pesan yang kita terima → tandai deleted_by_receiver
+                Chat::whereIn('id', $ids)
+                    ->where('receiver_id', $authId)
+                    ->update(['deleted_by_receiver' => true]);
+
+                // Bersihkan pesan yang sudah dihapus oleh kedua sisi
+                $toClean = Chat::whereIn('id', $ids)
+                               ->where('deleted_by_sender', true)
+                               ->where('deleted_by_receiver', true)
+                               ->get();
+
+                foreach ($toClean as $chat) {
+                    if ($chat->image) {
+                        Storage::disk('public')->delete($chat->image);
+                    }
+                    $chat->delete();
+                }
+            }
+
+            return response()->json(['success' => true]);
+
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
