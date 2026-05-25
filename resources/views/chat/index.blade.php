@@ -361,8 +361,6 @@
                                                             <i class="bi bi-clipboard me-2"></i>Salin
                                                         </a>
                                                     </li>
-                                                    {{-- Tombol Hapus muncul di SEMUA pesan (me & you) --}}
-                                                    {{-- "Hapus untuk semua" hanya muncul di dialog jika isMe = true --}}
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
                                                         <a class="dropdown-item text-danger btn-delete"
@@ -452,25 +450,50 @@ document.addEventListener('DOMContentLoaded', function () {
     const receiverId = "{{ $receiver->id }}";
     const csrfToken  = "{{ csrf_token() }}";
 
+    // ─────────────────────────────────────────────────────────
     // Auto scroll
+    // ─────────────────────────────────────────────────────────
     function scrollToBottom() {
         if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
     }
     scrollToBottom();
 
-    // Realtime via Laravel Echo
+    // ─────────────────────────────────────────────────────────
+    // Realtime via Laravel Echo (Reverb)
+    // ─────────────────────────────────────────────────────────
     if (typeof Echo !== 'undefined' && authUserId) {
+
         Echo.channel('chat.' + authUserId)
+
+            // ── Pesan masuk baru ──────────────────────────────
             .listen('.MessageSent', (e) => {
                 if (String(e.chat.sender_id) === String(receiverId)) {
                     if (!document.getElementById('chat-row-' + e.chat.id)) {
                         appendChatBubble(e.chat, false);
                     }
                 }
+            })
+
+            // ── Pesan dihapus (scope=all) dari lawan bicara ──
+            .listen('.MessageDeleted', (e) => {
+                // Hanya hapus dari DOM jika scope = 'all'
+                // scope = 'me' tidak perlu broadcast ke pihak lain
+                if (e.scope === 'all') {
+                    const el = document.getElementById('chat-row-' + e.chat_id);
+                    if (el) {
+                        // Animasi sebelum dihapus
+                        el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                        el.style.opacity    = '0';
+                        el.style.transform  = 'scale(0.95)';
+                        setTimeout(() => el.remove(), 250);
+                    }
+                }
             });
     }
 
+    // ─────────────────────────────────────────────────────────
     // Kirim pesan
+    // ─────────────────────────────────────────────────────────
     chatForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -505,7 +528,9 @@ document.addEventListener('DOMContentLoaded', function () {
         .finally(() => { btnSend.disabled = false; messageInput.focus(); });
     });
 
+    // ─────────────────────────────────────────────────────────
     // Buat bubble HTML
+    // ─────────────────────────────────────────────────────────
     function appendChatBubble(chat, isMe) {
         const alignClass  = isMe ? 'justify-content-end' : 'justify-content-start';
         const wrapClass   = isMe ? 'flex-row-reverse'    : 'flex-row';
@@ -577,9 +602,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function escapeAttr(str) { return String(str).replace(/"/g,'&quot;'); }
 
-    // ── Hapus satu pesan (via dropdown) ─────────────────────
-    // Jika isMe = true  → dialog tampilkan "Hapus untuk saya" + "Hapus untuk semua"
-    // Jika isMe = false → dialog hanya tampilkan "Hapus untuk saya"
+    // ─────────────────────────────────────────────────────────
+    // Hapus satu pesan (via dropdown)
+    // ─────────────────────────────────────────────────────────
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.btn-delete');
         if (!btn || isSelectionMode()) return;
@@ -601,7 +626,14 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById(`chat-row-${id}`)?.remove();
+                    // Hapus dari DOM milik kita langsung (tanpa tunggu broadcast)
+                    const el = document.getElementById(`chat-row-${id}`);
+                    if (el) {
+                        el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                        el.style.opacity    = '0';
+                        el.style.transform  = 'scale(0.95)';
+                        setTimeout(() => el.remove(), 250);
+                    }
                     showToast('Pesan dihapus');
                 } else {
                     alert(data.message ?? 'Gagal menghapus pesan.');
@@ -611,7 +643,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // ─────────────────────────────────────────────────────────
     // Salin pesan
+    // ─────────────────────────────────────────────────────────
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.btn-copy-message');
         if (!btn) return;
@@ -623,7 +657,9 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(() => alert('Gagal menyalin pesan.'));
     });
 
+    // ─────────────────────────────────────────────────────────
     // Mode seleksi
+    // ─────────────────────────────────────────────────────────
     function isSelectionMode() { return selectionBar.classList.contains('show'); }
 
     function enterSelectionMode() {
@@ -685,8 +721,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     btnCancelSelection?.addEventListener('click', exitSelectionMode);
 
-    // ── Hapus bulk (selection mode) ──────────────────────────
-    // "Hapus untuk semua" hanya muncul jika SEMUA pesan yang dipilih adalah milik kita
+    // ─────────────────────────────────────────────────────────
+    // Hapus bulk (selection mode)
+    // ─────────────────────────────────────────────────────────
     btnDeleteSelected?.addEventListener('click', function () {
         const selected = [...document.querySelectorAll('.chat-checkbox:checked')].map(cb => cb.value);
         if (selected.length === 0) return;
@@ -709,7 +746,15 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    selected.forEach(id => document.getElementById(`chat-row-${id}`)?.remove());
+                    // Hapus dari DOM milik kita (broadcast handle sisi receiver)
+                    selected.forEach(id => {
+                        const el = document.getElementById(`chat-row-${id}`);
+                        if (el) {
+                            el.style.transition = 'opacity 0.2s ease';
+                            el.style.opacity    = '0';
+                            setTimeout(() => el.remove(), 200);
+                        }
+                    });
                     exitSelectionMode();
                     showToast(`${selected.length} pesan dihapus`);
                 } else {
@@ -720,7 +765,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // ─────────────────────────────────────────────────────────
     // Preview gambar
+    // ─────────────────────────────────────────────────────────
     imageInput.addEventListener('change', function () {
         const file = this.files[0];
         previewContainer.innerHTML = '';
@@ -745,7 +792,9 @@ document.addEventListener('DOMContentLoaded', function () {
         messageInput.focus();
     });
 
-    // Toast
+    // ─────────────────────────────────────────────────────────
+    // Toast notifikasi
+    // ─────────────────────────────────────────────────────────
     function showToast(msg) {
         const toast = document.createElement('div');
         toast.textContent = msg;
@@ -758,9 +807,11 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 1800);
     }
 
-    // ── Dialog konfirmasi hapus ──────────────────────────────
-    // showDeleteAll = true  → tampilkan "Hapus untuk semua" (hanya jika pesan milik kita)
+    // ─────────────────────────────────────────────────────────
+    // Dialog konfirmasi hapus (WhatsApp style)
+    // showDeleteAll = true  → tampilkan "Hapus untuk semua"
     // showDeleteAll = false → hanya "Hapus untuk saya"
+    // ─────────────────────────────────────────────────────────
     function showDeleteConfirm(count, showDeleteAll, onConfirm) {
         document.getElementById('wa-delete-dialog')?.remove();
 
@@ -796,7 +847,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div style="text-align:center; padding:0 24px 16px; border-bottom:1px solid #f0f0f0;">
                     <div style="width:48px;height:48px;border-radius:50%;background:#ffeaea;
                                 display:flex;align-items:center;justify-content:center;
-                                margin:0 auto 10px; font-size:1.4rem;">&#128465;</div>
+                                margin:0 auto 10px; font-size:1.4rem;">🗑️</div>
                     <div style="font-weight:600;font-size:1rem;color:#111;margin-bottom:4px;">
                         Hapus ${count} pesan?
                     </div>
@@ -825,13 +876,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.body.appendChild(overlay);
 
-        // Hapus untuk saya → scope = 'me'
         document.getElementById('wa-confirm-delete').addEventListener('click', () => {
             overlay.remove();
             onConfirm('me');
         });
 
-        // Hapus untuk semua → scope = 'all' (hanya ada jika showDeleteAll = true)
         if (showDeleteAll) {
             document.getElementById('wa-confirm-delete-all').addEventListener('click', () => {
                 overlay.remove();

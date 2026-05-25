@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Events\MessageSent;
 use Illuminate\Support\Facades\Storage;
+use App\Events\MessageDeleted;
 
 class ChatController extends Controller
 {
@@ -83,10 +84,7 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
-
-    // =========================================================
-    // 3. Hapus Satu Pesan (Dropdown → Hapus)
-    //    Menerima: scope = 'me' | 'all'
+    // 3. Hapus Satu Pesan
     // =========================================================
     public function destroy(Request $request, $id)
     {
@@ -100,23 +98,25 @@ class ChatController extends Controller
                 return response()->json(['success' => false, 'message' => 'Pesan tidak ditemukan'], 404);
             }
 
+            // Simpan receiver sebelum dihapus (untuk broadcast)
+            $receiverId = $chat->receiver_id;
+            $senderId   = $chat->sender_id;
+
             if ($scope === 'all') {
-                // ── Hapus untuk semua ────────────────────────────────
-                // Hanya boleh dilakukan oleh pengirim pesan
                 if ($chat->sender_id !== $authId) {
                     return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin'], 403);
                 }
 
-                // Hapus file gambar jika ada
                 if ($chat->image) {
                     Storage::disk('public')->delete($chat->image);
                 }
 
-                $chat->delete(); // hard delete, hilang dari kedua sisi
+                $chat->delete();
+
+                // ✅ Broadcast ke penerima — hapus dari kedua sisi
+                broadcast(new MessageDeleted($id, $receiverId, 'all'))->toOthers();
 
             } else {
-                // ── Hapus untuk saya ────────────────────────────────
-                // Tandai sesuai posisi user (pengirim atau penerima)
                 if ($chat->sender_id === $authId) {
                     $chat->update(['deleted_by_sender' => true]);
                 } elseif ($chat->receiver_id === $authId) {
@@ -125,7 +125,6 @@ class ChatController extends Controller
                     return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin'], 403);
                 }
 
-                // Jika kedua sisi sudah menghapus → hard delete untuk bersihkan DB
                 $chat->refresh();
                 if ($chat->deleted_by_sender && $chat->deleted_by_receiver) {
                     if ($chat->image) {
@@ -133,6 +132,9 @@ class ChatController extends Controller
                     }
                     $chat->delete();
                 }
+
+                // ✅ Broadcast 'me' — hanya hapus di sisi pengirim (tidak perlu broadcast ke lawan)
+                // Tidak perlu broadcast karena hanya mempengaruhi diri sendiri
             }
 
             return response()->json(['success' => true]);
@@ -143,8 +145,7 @@ class ChatController extends Controller
     }
 
     // =========================================================
-    // 4. Hapus Pesan Terpilih (Bulk / Selection Mode)
-    //    Menerima: ids = array, scope = 'me' | 'all'
+    // 4. Hapus Pesan Terpilih (Bulk)
     // =========================================================
     public function deleteSelected(Request $request)
     {
@@ -158,36 +159,35 @@ class ChatController extends Controller
             }
 
             if ($scope === 'all') {
-                // ── Hapus untuk semua ────────────────────────────────
-                // Hanya pesan yang dikirim oleh kita yang boleh dihapus untuk semua
                 $chats = Chat::whereIn('id', $ids)
-                             ->where('sender_id', $authId)
-                             ->get();
+                            ->where('sender_id', $authId)
+                            ->get();
 
                 foreach ($chats as $chat) {
                     if ($chat->image) {
                         Storage::disk('public')->delete($chat->image);
                     }
+
+                    $receiverId = $chat->receiver_id;
                     $chat->delete();
+
+                    // ✅ Broadcast tiap pesan yang dihapus
+                    broadcast(new MessageDeleted($chat->id, $receiverId, 'all'))->toOthers();
                 }
 
             } else {
-                // ── Hapus untuk saya ────────────────────────────────
-                // Pesan yang kita kirim → tandai deleted_by_sender
                 Chat::whereIn('id', $ids)
                     ->where('sender_id', $authId)
                     ->update(['deleted_by_sender' => true]);
 
-                // Pesan yang kita terima → tandai deleted_by_receiver
                 Chat::whereIn('id', $ids)
                     ->where('receiver_id', $authId)
                     ->update(['deleted_by_receiver' => true]);
 
-                // Bersihkan pesan yang sudah dihapus oleh kedua sisi
                 $toClean = Chat::whereIn('id', $ids)
-                               ->where('deleted_by_sender', true)
-                               ->where('deleted_by_receiver', true)
-                               ->get();
+                            ->where('deleted_by_sender', true)
+                            ->where('deleted_by_receiver', true)
+                            ->get();
 
                 foreach ($toClean as $chat) {
                     if ($chat->image) {
