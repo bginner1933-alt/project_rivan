@@ -148,7 +148,7 @@
                 <span class="text-header-small">selamat datang di</span>
                 <h1 class="display-magazine mt-3">
                     wangi<br>
-                    <span class="text-white-50">Projek</span>
+                    <span class="text-white-50">Project</span>
                 </h1>
             </div>
             <div class="col-md-5 text-md-end mt-4 mt-md-0">

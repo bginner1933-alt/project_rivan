@@ -182,20 +182,30 @@
                             <div class="flex-grow-1 mt-3 mt-md-0">
                                 <span class="badge-category mb-2 d-inline-block">{{ $product->category->name ?? 'Premium Item' }}</span>
                                 <h5 class="fw-800 text-dark mb-1">{{ Str::limit($product->name ?? 'Produk Tanpa Nama', 50) }}</h5>
-                                <p class="text-primary fw-bold fs-5 mb-0">Rp {{ number_format($product->display_price ?? 0, 0, ',', '.') }}</p>
+                                
+                                <p class="text-primary fw-bold fs-5 mb-0">
+                                    Rp {{ number_format($item['price'] ?? 0, 0, ',', '.') }}
+                                    @if(($item['type'] ?? 'buy') === 'rent')
+                                        <span class="text-muted small fw-normal">/ {{ $item['duration'] ?? 1 }} {{ $item['unit'] ?? 'day' }}</span>
+                                    @endif
+                                </p>
                             </div>
 
                             {{-- Actions (Qty & Subtotal) --}}
                             <div class="d-flex align-items-center gap-4 mt-4 mt-md-0 ms-md-auto w-100 w-md-auto justify-content-between">
-                                <form action="{{ route('cart.update', $item['id']) }}" method="POST">
+                                {{-- 🛠️ DISINI SUDAH FIXED: Menggunakan @method('PATCH') yang benar --}}
+                                {{-- GANTI FORM QUANTITY LAMA DENGAN INI --}}
+                                <form id="form-update-{{ $item['id'] }}" action="{{ route('cart.update', $item['id']) }}" method="POST">
                                     @csrf
                                     @method('PATCH')
                                     <div class="qty-wrapper">
-                                        <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit()">
+                                        <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); document.getElementById('form-update-{{ $item['id'] }}').requestSubmit();">
                                             <i class="bi bi-dash"></i>
                                         </button>
+                                        
                                         <input type="number" name="quantity" value="{{ $item['quantity'] ?? 1 }}" min="1" max="{{ $product->stock ?? 99 }}" class="qty-input-hidden" readonly>
-                                        <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit()">
+                                        
+                                        <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); document.getElementById('form-update-{{ $item['id'] }}').requestSubmit();">
                                             <i class="bi bi-plus"></i>
                                         </button>
                                     </div>

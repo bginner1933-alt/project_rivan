@@ -21,7 +21,6 @@ use App\Http\Controllers\RentalController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ChatController;
 
-
 use App\Http\Controllers\Admin\LaporanPengaduanController;
 use App\Http\Controllers\Admin\PendapatanController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -31,7 +30,6 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LaporanController;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -118,11 +116,16 @@ Route::middleware('auth')->group(function () {
         return redirect('/');
     })->middleware('signed')->name('verification.verify');
 
-    // CART
+    // 🛒 CART (SUDAH DI-UPDATE JARING PENGAMAN)
     Route::prefix('cart')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('cart.index');
         Route::post('/add', [CartController::class, 'add'])->name('cart.add');
+        
+        // Route utama (PATCH) untuk update kuantitas
         Route::patch('/{item}', [CartController::class, 'update'])->name('cart.update');
+        // Jaring pengaman (POST alternatif) jika request PATCH gagal dideteksi browser
+        Route::post('/{item}', [CartController::class, 'update']); 
+        
         Route::delete('/{item}', [CartController::class, 'remove'])->name('cart.remove');
     });
 
@@ -146,14 +149,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/bantuan', [LaporanPengaduanController::class, 'index'])->name('bantuan');
     Route::post('/bantuan', [LaporanPengaduanController::class, 'store'])->name('pengaduan.store');
 
-    // ── CHAT ──────────────────────────────────────────
+    // 💬 CHAT USER
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-
-    // Spesifik dulu ↓
     Route::post('/chat/delete-selected', [ChatController::class, 'deleteSelected'])->name('chat.delete.selected');
     Route::post('/chat/send/{receiverId}', [ChatController::class, 'sendMessage'])->name('chat.send');
-
-    // Wildcard belakangan ↓
     Route::get('/chat/{receiverId}', [ChatController::class, 'index'])->name('chat.show');
     Route::delete('/chat/{id}', [ChatController::class, 'destroy'])->name('chat.destroy');
 });
@@ -169,69 +168,52 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
 
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/ratings', [RatingController::class, 'admin'])->name('ratings.index');
+        Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/ratings', [RatingController::class, 'admin'])->name('ratings.index');
 
-    // PRODUCTS
-    Route::delete('products/bulk-delete', [AdminProductController::class, 'bulkDelete'])->name('products.bulkDelete');
-    Route::delete('products/delete-all', [AdminProductController::class, 'deleteAll'])->name('products.deleteAll');
-    Route::resource('products', AdminProductController::class);
+        // PRODUCTS
+        Route::delete('products/bulk-delete', [AdminProductController::class, 'bulkDelete'])->name('products.bulkDelete');
+        Route::delete('products/delete-all', [AdminProductController::class, 'deleteAll'])->name('products.deleteAll');
+        Route::resource('products', AdminProductController::class);
 
-    // CATEGORIES
-    Route::delete('categories/bulk-delete', [AdminCategoryController::class, 'bulkDelete'])->name('categories.bulkDelete');
-    Route::delete('categories/delete-all', [AdminCategoryController::class, 'deleteAll'])->name('categories.deleteAll');
-    Route::resource('categories', AdminCategoryController::class);
+        // CATEGORIES
+        Route::delete('categories/bulk-delete', [AdminCategoryController::class, 'bulkDelete'])->name('categories.bulkDelete');
+        Route::delete('categories/delete-all', [AdminCategoryController::class, 'deleteAll'])->name('categories.deleteAll');
+        Route::resource('categories', AdminCategoryController::class);
 
-    // ORDERS
-    Route::delete('orders/bulk-delete', [AdminOrderController::class, 'bulkDelete'])->name('orders.bulk-delete');
-    Route::delete('orders/delete-all', [AdminOrderController::class, 'deleteAll'])->name('orders.delete-all');
-    Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
-    Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-    Route::get('orders/pending', [AdminOrderController::class, 'pendingOrders'])->name('orders.pending');
+        // ORDERS
+        Route::delete('orders/bulk-delete', [AdminOrderController::class, 'bulkDelete'])->name('orders.bulk-delete');
+        Route::delete('orders/delete-all', [AdminOrderController::class, 'deleteAll'])->name('orders.delete-all');
+        Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        Route::get('orders/pending', [AdminOrderController::class, 'pendingOrders'])->name('orders.pending');
 
-    // USERS
-    Route::resource('users', UserController::class)->only(['index', 'show', 'destroy']);
+        // USERS
+        Route::resource('users', UserController::class)->only(['index', 'show', 'destroy']);
 
-    // DASHBOARD EXTRA
-    Route::get('stok-menipis', [AdminController::class, 'stokMenipis'])->name('stokmenipis');
-    Route::get('total-produk', [AdminController::class, 'totalProduk'])->name('totalproduk');
-    Route::get('proses', [AdminController::class, 'proses'])->name('proses');
+        // DASHBOARD EXTRA
+        Route::get('stok-menipis', [AdminController::class, 'stokMenipis'])->name('stokmenipis');
+        Route::get('total-produk', [AdminController::class, 'totalProduk'])->name('totalproduk');
+        Route::get('proses', [AdminController::class, 'proses'])->name('proses');
 
-    // RENTALS
-    Route::post('/rentals/store', [RentalController::class, 'store'])->name('rentals.store');
+        // RENTALS
+        Route::post('/rentals/store', [RentalController::class, 'store'])->name('rentals.store');
 
-    /*
-    |--------------------------------------------------------------------------
-    | STRATEGI PEMISAHAN 3 CONTROLLER (REPORTS, LAPORAN, PENGADUAN)
-    |--------------------------------------------------------------------------
-    */
-    
-    // 1. REPORT CONTROLLER (Laporan Penjualan / Sales & Pendapatan)
-    Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('reports/sales/export', [ReportController::class, 'exportSales'])->name('reports.export-sales');
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index'); 
+        // REPORTS & MANAGEMENT
+        Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+        Route::get('reports/sales/export', [ReportController::class, 'exportSales'])->name('reports.export-sales');
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index'); 
 
-    // 2. LAPORAN CONTROLLER (Jika ada Laporan Finansial/Pendapatan Lain)
-    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('/pendapatan', [PendapatanController::class, 'index'])->name('pendapatan');
+        Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/pendapatan', [PendapatanController::class, 'index'])->name('pendapatan');
 
-    // 3. LAPORAN PENGADUAN CONTROLLER (Sesuai Tombol Detail di File Blade Anda)
-    Route::get('/laporan-pengaduan', [LaporanPengaduanController::class, 'adminIndex'])
-        ->name('laporanpengaduan.index');
-
-    Route::get('/laporan-pengaduan/{id}', [LaporanPengaduanController::class, 'show'])
-        ->name('laporanpengaduan.show'); 
-        // ^ Menggunakan 'laporanpengaduan.show' agar sinkron dengan href di blade pengaduan Anda
-      Route::post('/chat/delete-selected', [ChatController::class, 'deleteSelected']);
-
-Route::post('/chat/delete-selected-all', [ChatController::class, 'deleteSelectedAll'])
-    ->name('chat.deleteSelectedAll');
-    // Ubah dari Route::delete menjadi Route::post
-// Gunakan DELETE untuk standar penghapusan data
-// routes/web.php
-Route::any('/chat/delete-selected-all', [ChatController::class, 'deleteSelectedAll'])->name('chat.deleteSelectedAll');
-Route::any('/chat/delete-selected', [ChatController::class, 'deleteSelected'])->name('chat.deleteSelected');
+        Route::get('/laporan-pengaduan', [LaporanPengaduanController::class, 'adminIndex'])->name('laporanpengaduan.index');
+        Route::get('/laporan-pengaduan/{id}', [LaporanPengaduanController::class, 'show'])->name('laporanpengaduan.show'); 
+        
+        // ADMIN CHAT UTILITIES
+        Route::any('/chat/delete-selected-all', [ChatController::class, 'deleteSelectedAll'])->name('chat.deleteSelectedAll');
+        Route::any('/chat/delete-selected', [ChatController::class, 'deleteSelected'])->name('chat.deleteSelected');
 });
 
 /*

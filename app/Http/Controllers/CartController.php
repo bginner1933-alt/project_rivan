@@ -20,40 +20,41 @@ class CartController extends Controller
      * 🛒 Halaman Keranjang
      */
     public function index()
-    {
-        $cart = $this->cartService->getCart();
+{
+    $cart = $this->cartService->getCart();
+    $cart->load(['items.product.primaryImage']);
 
-        // Eager load
-        $cart->load(['items.product.primaryImage']);
+    $cartItems = $cart->items->map(function ($item) {
+        // Ambil type secara aman, paksa ke lowercase untuk menghindari typo 'Rent' atau 'Buy'
+        $type = strtolower($item->type ?? 'buy'); 
 
-        $cartItems = $cart->items->map(function ($item) {
+        if ($type === 'rent') {
+            // Ambil dari item price, kalau kosong ambil dari rental_price produk
+            $price = $item->price ?? ($item->product->rental_price ?? 0);
+            $subtotal = $price * $item->quantity * ($item->duration ?? 1);
+        } else {
+            // Ambil dari item price, kalau kosong ambil dari display_price produk
+            $price = $item->price ?? ($item->product->display_price ?? 0);
+            $subtotal = $price * $item->quantity;
+        }
 
-            // 🔥 Tentukan harga fallback (jaga2 kalau DB kosong)
-            if ($item->type === 'rent') {
-                $price = $item->price ?? $item->product->rental_price;
-                $subtotal = $price * $item->quantity * ($item->duration ?? 1);
-            } else {
-                $price = $item->price ?? $item->product->display_price;
-                $subtotal = $price * $item->quantity;
-            }
+        return [
+            'id'       => $item->id,
+            'product'  => $item->product,
+            'quantity' => $item->quantity,
+            'type'     => $type,
+            'price'    => $price,
+            'duration' => $item->duration ?? 1,
+            'unit'     => $item->unit ?? 'day',
+            'subtotal' => $subtotal,
+        ];
+    });
 
-            return [
-                'id'       => $item->id,
-                'product'  => $item->product,
-                'quantity' => $item->quantity,
-                'type'     => $item->type ?? 'buy',
-                'price'    => $price,
-                'duration' => $item->duration,
-                'unit'     => $item->unit,
-                'subtotal' => $subtotal,
-            ];
-        });
+    $totalQuantity = $cartItems->sum('quantity');
+    $total = $cartItems->sum('subtotal');
 
-        $totalQuantity = $cartItems->sum('quantity');
-        $total = $cartItems->sum('subtotal');
-
-        return view('cart.index', compact('cartItems', 'totalQuantity', 'total'));
-    }
+    return view('cart.index', compact('cartItems', 'totalQuantity', 'total'));
+}
 
     /**
      * ➕ Tambah ke Cart (BUY & RENT)

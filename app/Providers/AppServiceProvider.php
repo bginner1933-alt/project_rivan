@@ -2,9 +2,10 @@
 
 namespace App\Providers;
 
-use App\Models\Product;
 use Illuminate\Support\ServiceProvider;
-use App\Observers\ProductObserver;
+use Illuminate\Support\Facades\View;
+use App\Services\CartService;
+use Illuminate\Support\Facades\Auth;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        
+        //
     }
 
     /**
@@ -21,6 +22,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Product::observe(ProductObserver::class);
+        // Menyuntikkan variabel data ke navbar secara otomatis dan aman
+        View::composer('*', function ($view) {
+            if (Auth::check()) {
+                // Panggil CartService secara dinamis dari Service Container
+                $cartService = app(CartService::class);
+                $cart = $cartService->getCart();
+                
+                // Hitung total quantity dari item yang ada di keranjang
+                $cartCount = $cart && $cart->items ? $cart->items->sum('quantity') : 0;
+            } else {
+                $cartCount = 0;
+            }
+
+            // Variabel $cartCount ini sekarang bisa dipakai di file Blade mana pun
+            $view->with('cartCount', $cartCount);
+        });
     }
 }

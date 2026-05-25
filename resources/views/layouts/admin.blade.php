@@ -72,6 +72,14 @@
             @endif
         </div>
 
+        <div class="px-4 pt-2 d-flex justify-content-end">
+            <a href="{{ url('/') }}"
+            class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-shop me-1"></i>
+                Lihat Toko
+            </a>
+        </div>
+
         {{-- CONTENT AREA --}}
         <main class="p-4">
             <div class="container-fluid">

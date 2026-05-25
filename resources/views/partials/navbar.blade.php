@@ -37,10 +37,22 @@
             </a>
 
             {{-- Mobile Toggle --}}
-            <button class="navbar-toggler border-0 shadow-none" type="button" 
+            <button class="navbar-toggler border-0 shadow-none position-relative" 
+                    type="button"
                     data-bs-toggle="collapse" 
                     data-bs-target="#navbarMain">
+
                 <span class="navbar-toggler-icon"></span>
+{{-- Ganti bagian pengecekan notifikasi bawaanmu dengan ini --}}
+                @auth
+                    @if(isset($cartCount) && $cartCount > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                            style="font-size: 0.55rem; z-index: 10;">
+                            {{ $cartCount }}
+                        </span>
+                    @endif
+                @endauth
+
             </button>
 
             {{-- Navbar Content --}}
@@ -189,6 +201,10 @@
     .bg-soft-primary { background-color: #eef4ff; }
     .dropdown-menu { min-width: 210px; }
     .swal-rounded { border-radius: 18px !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
+
+    .navbar-toggler {
+        overflow: visible !important;
+    }
 </style>
 
 {{-- Script SweetAlert --}}
