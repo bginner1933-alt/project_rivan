@@ -253,6 +253,7 @@
                                         <tr>
                                             <th>Detail Produk</th>
                                             <th class="text-center">Jumlah</th>
+                                            <th>Durasi</th>
                                             <th class="text-end">Subtotal</th>
                                         </tr>
                                     </thead>
@@ -261,13 +262,30 @@
                                         <tr>
                                             <td>
                                                 <span class="d-block fw-800 text-dark">{{ $item->product_name }}</span>
-                                                <span class="text-muted smaller">
-                                                    Rp {{ number_format($item->price, 0, ',', '.') }}
-                                                </span>
+                                               <span class="text-muted smaller">
+                                            @if($item->product?->rental_price)
+                                                Rp {{ number_format($item->product->rental_price, 0, ',', '.') }}/hari
+                                            @else
+                                                Rp {{ number_format($item->price, 0, ',', '.') }}
+                                            @endif
+                                        </span>
                                             </td>
                                             <td class="text-center fw-bold">{{ $item->quantity }}</td>
+                                           <td class="text-center">
+                                                @if($item->product?->rental_price)
+                                                    {{ $item->product->rental_duration }} Hari
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
                                             <td class="text-end fw-800">
-                                                Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                                                @if($item->product?->rental_price)
+                                                    Rp {{ number_format(
+                                                        ($item->product->rental_price ?? 0) * $item->quantity,
+                                                    0, ',', '.') }}
+                                                @else
+                                                    Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                                                @endif
                                             </td>
                                         </tr>
                                         @endforeach

@@ -68,7 +68,7 @@
                             <button class="carousel-control-prev" type="button" data-bs-target="#luxuryHeroCarousel" data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon"></span>
                             </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#luxuryHeroCarousel" data-bs-slide-to="next">
+                            <button class="carousel-control-next" type="button" data-bs-target="#luxuryHeroCarousel" data-bs-slide="next">
                                 <span class="carousel-control-next-icon"></span>
                             </button>
                         </div>
@@ -77,9 +77,9 @@
                     {{-- BAGIAN KANAN: SIDE BANNERS (ALA TOKOPEDIA) --}}
                     <div class="side-banners-area">
                         <div class="side-banner-item shadow-sm mb-3">
-                            <img src="{{ asset('images/side-promo-1.jpg') }}" alt="Promo 1">
+                            <img src="{{ asset('storage/avatars/rr.jpg') }}" alt="Promo 1">
                             <div class="side-banner-overlay">
-                                <h6>Flash Sale Today</h6>
+                                <h6>Best Seller</h6>
                             </div>
                         </div>
                         <div class="side-banner-item shadow-sm">
@@ -207,7 +207,7 @@
                                     <div class="rental-price-wrapper text-center">
                                         <span class="fw-semibold text-primary">
                                             <small>Rp</small>{{ number_format($product->rental_price, 0, ',', '.') }}
-                                            <span class="text-lowercase fw-normal fs-7">/{{ $product->rental_unit ?? 'hari' }}</span>
+                                            <span class="text-lowercase fw-normal fs-7">/{{ $product->rental_duration }} hari </span>
                                         </span>
                                         <small class="text-secondary d-block" style="font-size: 0.7rem; margin-top: -3px;">Harga Sewa</small>
                                     </div>

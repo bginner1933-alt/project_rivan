@@ -44,78 +44,33 @@
                             </div>
 
                             <div class="row">
-
                                 {{-- Kategori --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Kategori</label>
-
-                                    <select name="category_id"
-                                            class="form-select @error('category_id') is-invalid @enderror">
-
+                                    <select name="category_id" class="form-select @error('category_id') is-invalid @enderror">
                                         <option value="">Pilih Kategori...</option>
-
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}"
-                                                {{ old('category_id') == $category->id ? 'selected' : '' }}>
-
+                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                                 {{ $category->name }}
                                             </option>
                                         @endforeach
                                     </select>
-
                                     @error('category_id')
-                                        <div class="invalid-feedback">
-                                            {{ $message }}
-                                        </div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-
-                                {{-- JENIS PRODUK --}}
-                                {{-- <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Jenis Produk</label>
-
-                                    <select name="type"
-                                            class="form-select @error('type') is-invalid @enderror">
-
-                                        <option value="beli"
-                                            {{ old('type') == 'beli' ? 'selected' : '' }}>
-                                            Beli
-                                        </option>
-
-                                        <option value="sewa"
-                                            {{ old('type') == 'sewa' ? 'selected' : '' }}>
-                                            Sewa
-                                        </option>
-                                    </select>
-
-                                    @error('type')
-                                        <div class="invalid-feedback">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
-                                </div> --}}
 
                                 {{-- Berat --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Berat (Gram)</label>
-
                                     <div class="input-group">
-                                        <input type="number"
-                                            name="weight"
-                                            class="form-control @error('weight') is-invalid @enderror"
-                                            value="{{ old('weight', 1) }}"
-                                            min="1">
-
+                                        <input type="number" name="weight" class="form-control @error('weight') is-invalid @enderror" value="{{ old('weight', 1) }}" min="1">
                                         <span class="input-group-text">gr</span>
                                     </div>
-
                                     @error('weight')
-                                        <div class="invalid-feedback">
-                                            {{ $message }}
-                                        </div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -129,19 +84,18 @@
                                     <label class="form-label fw-bold">Harga Asli</label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
-                                            <input type="number" name="price" id="price" class="form-control @error('price') is-invalid @enderror" 
-                                                {{-- value="{{ old('price') ? number_format(old('price'), 0, ',', '.') : 0 }}"  --}}
-                                                value="{{ old('price') }}"
-                                                oninput="formatRupiah(this)">                       
+                                        <input type="number" name="price" id="price" class="form-control @error('price') is-invalid @enderror" value="{{ old('price') }}">                      
                                     </div>
+                                    @error('price') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Harga Diskon (Opsional)</label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="number" name="discount_price" id="discount_price" class="form-control" value="{{ old('discount_price') }}">
+                                        <input type="number" name="discount_price" id="discount_price" class="form-control @error('discount_price') is-invalid @enderror" value="{{ old('discount_price') }}">
                                     </div>
                                     <small id="discount-info" class="text-muted mt-1 d-block">Kosongkan jika tidak ada diskon.</small>
+                                    @error('discount_price') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div id="discount-preview" style="display: none;">
@@ -166,15 +120,12 @@
                                     @error('rental_price') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Satuan Sewa</label>
-                                    <select name="rental_unit" id="rental_unit" class="form-select @error('rental_unit') is-invalid @enderror">
-                                        <option value="">Pilih Satuan...</option>
-                                        <option value="hour" {{ old('rental_unit') == 'hour' ? 'selected' : '' }}>Per Jam</option>
-                                        <option value="day" {{ old('rental_unit') == 'day' ? 'selected' : '' }}>Per Hari</option>
-                                        <option value="week" {{ old('rental_unit') == 'week' ? 'selected' : '' }}>Per Minggu</option>
-                                        <option value="month" {{ old('rental_unit') == 'month' ? 'selected' : '' }}>Per Bulan</option>
-                                    </select>
-                                    @error('rental_unit') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                    <label class="form-label fw-bold">Durasi Sewa</label>
+                                    <div class="input-group">
+                                        <input type="number" name="rental_duration" id="rental_duration" class="form-control @error('rental_duration') is-invalid @enderror" value="{{ old('rental_duration', 1) }}" min="1">
+                                        <span class="input-group-text">Hari</span>
+                                    </div>
+                                    @error('rental_duration') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <small class="text-muted">Isi bagian ini hanya jika produk tersedia untuk disewa.</small>
@@ -195,28 +146,23 @@
                                     <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror" value="{{ old('stock', 1) }}" min="0">
                                     <span class="input-group-text">Pcs</span>
                                 </div>
-                                @error('stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                @error('stock') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
 
                             {{-- Gambar --}}
-                           {{-- Gambar --}}
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Gambar Produk</label>
-                                <input type="file" id="imageInput" name="images[]" multiple 
-                                    class="form-control @error('images') is-invalid @enderror">
-
+                                <input type="file" id="imageInput" name="images[]" multiple class="form-control @error('images') is-invalid @enderror">
                                 <small class="text-muted d-block mt-1">Bisa pilih lebih dari 1 gambar.</small>
-                                @error('images') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                @error('images') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 
                                 {{-- PREVIEW SLIDER --}}
                                 <div id="imagePreviewContainer" class="mt-3" style="display:none;">
                                     <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
                                         <div class="carousel-inner" id="carouselInner"></div>
-
                                         <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
                                             <span class="carousel-control-prev-icon"></span>
                                         </button>
-
                                         <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
                                             <span class="carousel-control-next-icon"></span>
                                         </button>
@@ -252,31 +198,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     const priceInput = document.getElementById('price');
     const discountPriceInput = document.getElementById('discount_price');
-
-    const rentalPriceInput = document.getElementById('rental_price');
-    const rentalUnitInput = document.getElementById('rental_unit');
-
     const discountPreview = document.getElementById('discount-preview');
     const discountAmount = document.getElementById('discount-amount');
     const discountPercent = document.getElementById('discount-percent');
     const discountInfo = document.getElementById('discount-info');
 
     // =========================
-    // DISCOUNT PREVIEW
+    // DISCOUNT PREVIEW LOGIC
     // =========================
-
-    function formatRupiah(element) {
-        // Hapus semua karakter selain angka
-        let value = element.value.replace(/\D/g, '');
-        
-        // Format angka dengan pemisah ribuan (Gaya Indonesia)
-        if (value) {
-            element.value = new Intl.NumberFormat('id-ID').format(value);
-        } else {
-            element.value = '';
-        }
-    }
-    
     function updateDiscountPreview() {
         const price = parseFloat(priceInput.value) || 0;
         const discountPrice = parseFloat(discountPriceInput.value) || 0;
@@ -290,67 +219,23 @@ document.addEventListener('DOMContentLoaded', function() {
             discountPreview.style.display = 'block';
 
             discountInfo.textContent = 'Harga diskon valid.';
-            discountInfo.className = 'text-success fw-bold';
+            discountInfo.className = 'text-success fw-bold small mt-1 d-block';
 
         } else if (discountPrice >= price && discountPrice > 0) {
             discountPreview.style.display = 'none';
             discountInfo.textContent = 'Harga diskon harus lebih rendah dari harga asli!';
-            discountInfo.className = 'text-danger fw-bold';
+            discountInfo.className = 'text-danger fw-bold small mt-1 d-block';
 
         } else {
             discountPreview.style.display = 'none';
             discountInfo.textContent = 'Kosongkan jika tidak ada diskon.';
-            discountInfo.className = 'text-muted';
+            discountInfo.className = 'text-muted small mt-1 d-block';
         }
     }
 
-    // =========================
-    // AUTO SYNC RENTAL PRICE
-    // =========================
-    function syncRentalPrice() {
-        // tidak auto sync lagi
-        return;
-    }
-
-    // =========================
-    // RENTAL VALIDATION
-    // =========================
-    function validateRental() {
-        if (rentalPriceInput.value > 0 && rentalUnitInput.value === "") {
-            rentalUnitInput.classList.add('is-invalid');
-            rentalUnitInput.setCustomValidity('Pilih satuan sewa');
-        } else {
-            rentalUnitInput.classList.remove('is-invalid');
-            rentalUnitInput.setCustomValidity('');
-        }
-    }
-
-    // =========================
-    // EVENTS
-    // =========================
-    priceInput.addEventListener('input', function () {
-        updateDiscountPreview();
-        syncRentalPrice();
-    });
-
-    discountPriceInput.addEventListener('input', function () {
-        updateDiscountPreview();
-        syncRentalPrice();
-    });
-
-    rentalPriceInput.addEventListener('input', function () {
-        // tandai kalau user sudah edit manual
-        rentalPriceInput.dataset.manualEdited = true;
-        validateRental();
-    });
-
-    rentalUnitInput.addEventListener('change', validateRental);
-
-    // =========================
-    // INIT
-    // =========================
+    priceInput.addEventListener('input', updateDiscountPreview);
+    discountPriceInput.addEventListener('input', updateDiscountPreview);
     updateDiscountPreview();
-    syncRentalPrice();
 });
 
 // =========================
@@ -373,11 +258,9 @@ imageInput.addEventListener('change', function () {
 
     Array.from(files).forEach((file, index) => {
         const reader = new FileReader();
-
         reader.onload = function (e) {
             const div = document.createElement('div');
             div.classList.add('carousel-item');
-
             if (index === 0) div.classList.add('active');
 
             div.innerHTML = `
@@ -385,10 +268,8 @@ imageInput.addEventListener('change', function () {
                      class="d-block w-100 rounded"
                      style="max-height:300px; object-fit:cover;">
             `;
-
             carouselInner.appendChild(div);
         };
-
         reader.readAsDataURL(file);
     });
 });

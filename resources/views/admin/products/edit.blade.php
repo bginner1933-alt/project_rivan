@@ -126,38 +126,6 @@
 
                                     </div>
 
-                                    {{-- JENIS PRODUK --}}
-                                    {{-- <div class="col-md-6 mb-3">
-
-                                        <label class="form-label fw-bold">
-                                            Jenis Produk
-                                        </label>
-
-                                        <select
-                                            name="type"
-                                            class="form-select @error('type') is-invalid @enderror"
-                                        >
-
-                                            <option value="beli"
-                                                {{ old('type', $product->type) == 'beli' ? 'selected' : '' }}>
-                                                Beli
-                                            </option>
-
-                                            <option value="sewa"
-                                                {{ old('type', $product->type) == 'sewa' ? 'selected' : '' }}>
-                                                Sewa
-                                            </option>
-
-                                        </select>
-
-                                        @error('type')
-                                            <div class="invalid-feedback">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-
-                                    </div> --}}
-
                                     {{-- BERAT --}}
                                     <div class="col-md-6 mb-3">
 
@@ -336,46 +304,31 @@
 
                                     </div>
 
-                                    {{-- SATUAN --}}
+                                    {{-- DURASI SEWA --}}
                                     <div class="col-md-6 mb-3">
 
                                         <label class="form-label fw-bold">
-                                            Satuan Sewa
+                                            Durasi Sewa
                                         </label>
 
-                                        <select
-                                            name="rental_unit"
-                                            id="rental_unit"
-                                            class="form-select @error('rental_unit') is-invalid @enderror"
-                                        >
+                                        <div class="input-group">
 
-                                            <option value="">
-                                                Pilih Satuan...
-                                            </option>
+                                            <input
+                                                type="number"
+                                                name="rental_duration"
+                                                id="rental_duration"
+                                                class="form-control @error('rental_duration') is-invalid @enderror"
+                                                value="{{ old('rental_duration', $product->rental_duration) }}"
+                                                min="1"
+                                            >
 
-                                            <option value="hour"
-                                                {{ old('rental_unit', $product->rental_unit) == 'hour' ? 'selected' : '' }}>
-                                                Per Jam
-                                            </option>
+                                            <span class="input-group-text">
+                                                Hari
+                                            </span>
 
-                                            <option value="day"
-                                                {{ old('rental_unit', $product->rental_unit) == 'day' ? 'selected' : '' }}>
-                                                Per Hari
-                                            </option>
+                                        </div>
 
-                                            <option value="week"
-                                                {{ old('rental_unit', $product->rental_unit) == 'week' ? 'selected' : '' }}>
-                                                Per Minggu
-                                            </option>
-
-                                            <option value="month"
-                                                {{ old('rental_unit', $product->rental_unit) == 'month' ? 'selected' : '' }}>
-                                                Per Bulan
-                                            </option>
-
-                                        </select>
-
-                                        @error('rental_unit')
+                                        @error('rental_duration')
                                             <div class="invalid-feedback d-block">
                                                 {{ $message }}
                                             </div>
@@ -544,9 +497,7 @@
 
                     </div>
 
-                    {{-- ========================================= --}}
                     {{-- RIGHT SIDE --}}
-                    {{-- ========================================= --}}
                     <div class="col-lg-4">
 
                         <div class="card shadow-sm border-0 mb-4">
@@ -650,9 +601,6 @@
     </div>
 </div>
 
-{{-- ========================================= --}}
-{{-- STYLE --}}
-{{-- ========================================= --}}
 <style>
 .card{
     border-radius:16px;
@@ -669,17 +617,11 @@
 }
 </style>
 
-{{-- ========================================= --}}
-{{-- SCRIPT --}}
-{{-- ========================================= --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
     const priceInput = document.getElementById('price');
     const discountPriceInput = document.getElementById('discount_price');
-
-    const rentalPriceInput = document.getElementById('rental_price');
-    const rentalUnitInput = document.getElementById('rental_unit');
 
     const discountPreview = document.getElementById('discount-preview');
     const discountAmount = document.getElementById('discount-amount');
@@ -739,32 +681,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     }
 
-    // =========================
-    // VALIDASI RENTAL
-    // =========================
-    function validateRental() {
-
-        if (rentalPriceInput.value > 0 &&
-            rentalUnitInput.value === "") {
-
-            rentalUnitInput.classList.add('is-invalid');
-
-        } else {
-
-            rentalUnitInput.classList.remove('is-invalid');
-
-        }
-
-    }
-
-    // EVENTS
     priceInput.addEventListener('input', updateDiscountPreview);
 
     discountPriceInput.addEventListener('input', updateDiscountPreview);
-
-    rentalPriceInput.addEventListener('input', validateRental);
-
-    rentalUnitInput.addEventListener('change', validateRental);
 
     updateDiscountPreview();
 

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('quantity')->default(1);
             
             $table->decimal('price_per_unit', 15, 2);
-            $table->string('unit')->default('hour');
+            $table->string('unit')->default('day'); // WAJIB, default 'day'
             $table->timestamps();
         });
     }

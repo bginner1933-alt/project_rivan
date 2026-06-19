@@ -31,10 +31,10 @@ class ProductController extends Controller
                 'price',
                 'discount_price',
                 'rental_price',
-                'rental_unit',
                 'slug',
                 'category_id',
                 'stock',
+                'rental_duration',
                 'created_at'
             ])
             ->with([
@@ -92,7 +92,7 @@ class ProductController extends Controller
 
             // FIX RENTAL
             $data['rental_price'] = $data['rental_price'] ?? null;
-            $data['rental_unit'] = $data['rental_unit'] ?? null;
+            $data['rental_duration'] = $data['rental_duration'] ?? null;
 
             // FIX CHECKBOX
             $data['is_active'] = $request->has('is_active');
@@ -175,8 +175,8 @@ class ProductController extends Controller
                 ? $request->rental_price
                 : null;
 
-            $data['rental_unit'] = $request->filled('rental_unit')
-                ? $request->rental_unit
+            $data['rental_duration'] = $request->filled('rental_duration') // <-- UBAH INI
+                ? $request->rental_duration
                 : null;
 
             // FIX CHECKBOX

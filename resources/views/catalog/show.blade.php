@@ -8,7 +8,7 @@
         --primary-blue: #3b82f6;
         --deep-blue: #1e40af;
         --glass-bg: rgba(255, 255, 255, 0.9);
-        --radius-extra: 35px; /* 🟢 Konsisten dengan halaman katalog */
+        --radius-extra: 35px;
     }
 
     body { 
@@ -23,7 +23,6 @@
         padding-bottom: 80px;
     }
 
-    /* 🖼️ IMAGE SHOWCASE */
     .image-showcase {
         position: sticky;
         top: 100px;
@@ -61,7 +60,6 @@
         transform: translateY(-5px);
     }
 
-    /* 📄 INFO CARD */
     .info-card {
         background: var(--glass-bg);
         backdrop-filter: blur(15px);
@@ -82,26 +80,6 @@
         letter-spacing: 1px;
     }
 
-    /* 🎚️ MODE SWITCH */
-    .mode-selector {
-        background: rgba(0,0,0,0.05);
-        padding: 8px;
-        border-radius: 20px;
-        display: inline-flex;
-        gap: 5px;
-        margin-bottom: 25px;
-    }
-
-    .mode-btn {
-        padding: 10px 25px;
-        border-radius: 15px;
-        cursor: pointer;
-        font-weight: 700;
-        transition: 0.3s;
-        user-select: none;
-    }
-
-    /* 🔘 FORM ELEMENTS */
     .form-control, .form-select {
         border-radius: 15px;
         padding: 12px 15px;
@@ -130,6 +108,7 @@
 </style>
 
 <div class="container product-container">
+
     {{-- TOMBOL KEMBALI --}}
     <div class="mb-4">
         <a href="{{ route('catalog.index') }}" class="text-white text-decoration-none fw-bold">
@@ -138,43 +117,55 @@
     </div>
 
     <div class="row g-5">
+
         {{-- BAGIAN GAMBAR --}}
         <div class="col-lg-6">
             <div class="image-showcase text-center animate__animated animate__fadeInLeft">
+
                 <img src="{{ $product->image_url }}" class="main-product-img" id="main-image">
 
                 @if($product->images->count() > 0)
                     <div class="d-flex gap-3 justify-content-center mt-4">
+
                         {{-- Gambar Utama --}}
-                        <img src="{{ $product->image_url }}" class="thumb-img" onclick="changeImage(this.src)">
-                        
+                        <img src="{{ $product->image_url }}"
+                             class="thumb-img"
+                             onclick="changeImage(this.src)">
+
                         {{-- Gambar Tambahan --}}
                         @foreach($product->images as $img)
                             <img src="{{ asset('storage/'.$img->image_path) }}"
                                  class="thumb-img"
                                  onclick="changeImage(this.src)">
                         @endforeach
+
                     </div>
                 @endif
+
             </div>
         </div>
 
         {{-- BAGIAN INFO --}}
         <div class="col-lg-6">
+
             <div class="info-card animate__animated animate__fadeInRight">
+
                 <div class="mb-3">
-                    <span class="badge-category">{{ $product->category->name ?? 'Produk' }}</span>
+                    <span class="badge-category">
+                        {{ $product->category->name ?? 'Produk' }}
+                    </span>
                 </div>
 
-                <h1 class="fw-900 mb-3" style="color: var(--dark-slate); letter-spacing: -1px;">{{ $product->name }}</h1>
+                <h1 class="fw-900 mb-3" style="letter-spacing:-1px;">
+                    {{ $product->name }}
+                </h1>
 
-                <p class="text-muted mb-4" style="line-height: 1.8;">
+                <p class="text-muted mb-4" style="line-height:1.8;">
                     {{ $product->description }}
                 </p>
 
                 <hr class="opacity-10 mb-4">
 
-                {{-- HARGA --}}
                 {{-- HARGA --}}
                 <div class="mb-4">
 
@@ -184,18 +175,19 @@
                             HARGA ESTIMASI
                         </span>
 
-                        <h2 class="fw-900 mb-0 
-                            {{ $product->price ? 'text-primary' : 'text-info' }}"
+                        <h2
+                            class="fw-900 mb-0 {{ $product->price ? 'text-primary' : 'text-info' }}"
                             id="price-display"
 
                             data-buy="Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}"
 
-                            data-rent="Rp {{ number_format($product->rental_price ?? 0, 0, ',', '.') }} / {{ $product->rental_unit }}">
+                            data-rent="Rp {{ number_format($product->rental_price ?? 0, 0, ',', '.') }} / {{ $product->rental_duration ?? 0 }} day"
+                        >
 
                             @if($product->price > 0)
                                 Rp {{ number_format($product->price, 0, ',', '.') }}
                             @elseif($product->rental_price > 0)
-                                Rp {{ number_format($product->rental_price, 0, ',', '.') }} / {{ $product->rental_unit }}
+                                Rp {{ number_format($product->rental_price, 0, ',', '.') }} / {{ $product->rental_duration ?? 0 }} day
                             @endif
 
                         </h2>
@@ -206,98 +198,155 @@
 
                 {{-- MODE SWITCH --}}
                 @if($product->price > 0 && $product->rental_price > 0)
+
                     <div class="mb-4">
-                        <label class="fw-800 small d-block mb-2 text-muted">OPSI TRANSAKSI</label>
+
+                        <label class="fw-800 small d-block mb-2 text-muted">
+                            OPSI TRANSAKSI
+                        </label>
+
                         <div class="d-flex gap-3">
+
                             <div class="form-check custom-option">
                                 <input class="form-check-input"
-                                    type="radio"
-                                    name="mode"
-                                    id="modeBuy"
-                                    value="buy"
-                                    {{ $product->price ? 'checked' : '' }}
-                                    onchange="setMode(this.value)">
-                                <label class="form-check-label fw-bold" for="modeBuy">Beli Produk</label>
+                                       type="radio"
+                                       name="mode"
+                                       id="modeBuy"
+                                       value="buy"
+                                       checked
+                                       onchange="setMode(this.value)">
+
+                                <label class="form-check-label fw-bold" for="modeBuy">
+                                    Beli Produk
+                                </label>
                             </div>
+
                             <div class="form-check custom-option">
                                 <input class="form-check-input"
-                                    type="radio"
-                                    name="mode"
-                                    id="modeRent"
-                                    value="rent"
-                                    {{ !$product->price && $product->rental_price ? 'checked' : '' }}
-                                    onchange="setMode(this.value)">
-                                <label class="form-check-label fw-bold" for="modeRent">Sewa Produk</label>
+                                       type="radio"
+                                       name="mode"
+                                       id="modeRent"
+                                       value="rent"
+                                       onchange="setMode(this.value)">
+
+                                <label class="form-check-label fw-bold" for="modeRent">
+                                    Sewa Produk
+                                </label>
                             </div>
+
                         </div>
+
                     </div>
+
                 @endif
 
                 {{-- FORM BELI --}}
                 @if($product->price > 0)
-                <form id="buyForm" action="{{ route('cart.add') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    <input type="hidden" name="quantity" value="1">
-                    <input type="hidden" name="type" value="buy">
 
-                    <button type="submit" class="btn btn-primary btn-action w-100 py-3 shadow">
-                        <i class="bi bi-cart-plus-fill me-2"></i> TAMBAH KE KERANJANG
-                    </button>
-                </form>
+                    <form id="buyForm"
+                          action="{{ route('cart.add') }}"
+                          method="POST">
+
+                        @csrf
+
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="type" value="buy">
+
+                        <button type="submit"
+                                class="btn btn-primary btn-action w-100 py-3 shadow">
+
+                            <i class="bi bi-cart-plus-fill me-2"></i>
+                            TAMBAH KE KERANJANG
+
+                        </button>
+
+                    </form>
+
                 @endif
 
                 {{-- FORM SEWA --}}
                 @if($product->rental_price > 0)
-                    <form id="rentForm" action="{{ route('cart.add') }}" method="POST" style="display:none;">
+
+                    <form id="rentForm"
+                          action="{{ route('cart.add') }}"
+                          method="POST"
+                          style="display:none;">
+
                         @csrf
+
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
                         <input type="hidden" name="type" value="rent">
 
                         <div class="row g-3 mb-4">
+
                             <div class="col-6">
-                                <label class="small fw-bold mb-1">JUMLAH ITEM</label>
-                                <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                                <label class="small fw-bold mb-1">
+                                    JUMLAH ITEM
+                                </label>
+
+                                <input type="number"
+                                       name="quantity"
+                                       class="form-control"
+                                       value="1"
+                                       min="1"
+                                       required>
                             </div>
+
                             <div class="col-6">
-                                <label class="small fw-bold mb-1">DURASI</label>
-                                <input type="number" name="duration" class="form-control" value="1" min="1" required>
+                                <label class="small fw-bold mb-1">
+                                    DURASI TAMBAHAN 3 HARI
+                                </label>
+
+                                <input type="number"
+                                       name="duration"
+                                       id="duration-input"
+                                       class="form-control"
+                                       value="1"
+                                       min="1"
+                                       required>
                             </div>
-                            <div class="col-12">
-                                <label class="small fw-bold mb-1">SATUAN WAKTU</label>
-                                <select name="unit" class="form-select" required>
-                                    <option value="hour">Jam</option>
-                                    <option value="day" selected>Hari</option>
-                                    <option value="week">Minggu</option>
-                                    <option value="month">Bulan</option>
-                                </select>
-                            </div>
+
                         </div>
 
-                        <button type="submit" class="btn btn-info btn-action w-100 py-3 text-white shadow">
-                            <i class="bi bi-calendar-check me-2"></i> MULAI SEWA SEKARANG
+                        <button type="submit"
+                                class="btn btn-info btn-action w-100 py-3 text-white shadow">
+
+                            <i class="bi bi-calendar-check me-2"></i>
+                            MULAI SEWA SEKARANG
+
                         </button>
+
                     </form>
+
                 @endif
 
             </div>
+
         </div>
+
     </div>
+
 </div>
 
 <script>
-    // Ganti Gambar Utama
+
+    // GANTI GAMBAR
     function changeImage(src) {
+
         const mainImg = document.getElementById('main-image');
+
         mainImg.style.opacity = '0';
+
         setTimeout(() => {
             mainImg.src = src;
             mainImg.style.opacity = '1';
         }, 200);
     }
 
-    // Ganti Mode (Beli/Sewa)
+    // GANTI MODE
     function setMode(mode) {
+
         const buyForm = document.getElementById('buyForm');
         const rentForm = document.getElementById('rentForm');
         const priceDisplay = document.getElementById('price-display');
@@ -306,16 +355,44 @@
         const rentPrice = priceDisplay.dataset.rent;
 
         if (mode === 'buy') {
+
             if (buyForm) buyForm.style.display = 'block';
             if (rentForm) rentForm.style.display = 'none';
+
             priceDisplay.innerText = buyPrice;
-            priceDisplay.classList.replace('text-info', 'text-primary');
-        } 
-        else {
+
+            priceDisplay.classList.remove('text-info');
+            priceDisplay.classList.add('text-primary');
+
+        } else {
+
             if (buyForm) buyForm.style.display = 'none';
             if (rentForm) rentForm.style.display = 'block';
-            priceDisplay.innerText = rentPrice === "0" ? 'Harga Tidak Tersedia' : rentPrice;
-            priceDisplay.classList.replace('text-primary', 'text-info');
+
+            priceDisplay.innerText = rentPrice;
+
+            priceDisplay.classList.remove('text-primary');
+            priceDisplay.classList.add('text-info');
+        }
+    }
+
+    // UPDATE TEXT HARGA SEWA
+    function updateRentalPriceText() {
+
+        const durationInput = document.getElementById('duration-input');
+        const unitSelect = document.getElementById('unit-select');
+        const priceDisplay = document.getElementById('price-display');
+        const modeRent = document.getElementById('modeRent');
+
+        if (!durationInput || !unitSelect || !priceDisplay) return;
+
+        if (modeRent && modeRent.checked) {
+
+            let duration = durationInput.value || 1;
+            let unit = unitSelect.value;
+
+            priceDisplay.innerText =
+                `Rp {{ number_format($product->rental_price ?? 0, 0, ',', '.') }} / ${duration} day`;
         }
     }
 
@@ -325,10 +402,23 @@
         const hasBuyPrice = @json((bool) $product->price);
         const hasRentalPrice = @json((bool) $product->rental_price);
 
-        // kalau tidak ada harga beli tapi ada harga sewa
         if (!hasBuyPrice && hasRentalPrice) {
             setMode('rent');
         }
+
+        const durationInput = document.getElementById('duration-input');
+        const unitSelect = document.getElementById('unit-select');
+
+        if (durationInput) {
+            durationInput.addEventListener('input', updateRentalPriceText);
+        }
+
+        if (unitSelect) {
+            unitSelect.addEventListener('change', updateRentalPriceText);
+        }
+
     });
+
 </script>
+
 @endsection

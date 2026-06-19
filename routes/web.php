@@ -21,6 +21,8 @@ use App\Http\Controllers\RentalController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ChatController;
 
+use App\Models\City;
+
 use App\Http\Controllers\Admin\LaporanPengaduanController;
 use App\Http\Controllers\Admin\PendapatanController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -135,6 +137,7 @@ Route::middleware('auth')->group(function () {
 
     // CHECKOUT & ORDERS
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::get('/checkout/shipping', [CheckoutController::class, 'getShipping'])->name('checkout.shipping');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
     Route::prefix('orders')->group(function () {
@@ -155,6 +158,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat/send/{receiverId}', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/{receiverId}', [ChatController::class, 'index'])->name('chat.show');
     Route::delete('/chat/{id}', [ChatController::class, 'destroy'])->name('chat.destroy');
+
+    // Route::get('/test-rajaongkir', function () {
+    //     $apiKey = config('services.rajaongkir.api_key');
+        
+    //     // Kita coba tembak API RajaOngkir untuk mengambil daftar kota
+    //     $response = Http::withHeaders([
+    //         'key' => $apiKey
+    //     ])->get('https://api.rajaongkir.com/starter/city');
+
+    //     return $response->json();
+    // });
+
+    Route::get('/cities', function () {
+        return City::select('id','name','province','type')
+                ->orderBy('province')
+                ->orderBy('name')
+                ->get();
+    });
+
+    Route::get('/checkout/shipping', [CheckoutController::class, 'getShipping'])->name('checkout.shipping');
 });
 
 /*

@@ -17,7 +17,7 @@ class RentalController extends Controller
             'product_id' => 'required|exists:products,id',
             'quantity'   => 'required|integer|min:1',
             'duration'   => 'required|integer|min:1',
-            'unit'       => 'required|in:hour,day,week,month',
+            'unit'       => 'required|in:day',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -27,21 +27,7 @@ class RentalController extends Controller
             $start = Carbon::now();
             $duration = (int) $request->duration;
 
-            // 🔥 HITUNG END DATE
-            switch ($request->unit) {
-                case 'hour':
-                    $end = $start->copy()->addHours($duration);
-                    break;
-                case 'day':
-                    $end = $start->copy()->addDays($duration);
-                    break;
-                case 'week':
-                    $end = $start->copy()->addWeeks($duration);
-                    break;
-                case 'month':
-                    $end = $start->copy()->addMonths($duration);
-                    break;
-            }
+            $end = $start->copy()->addDays($duration);
 
             // 🔥 HARGA
             $pricePerUnit = $product->rental_price ?? $product->price;
@@ -64,7 +50,7 @@ class RentalController extends Controller
                 'product_id'     => $product->id,
                 'quantity'       => $request->quantity,   // ✅ benar
                 'price_per_unit' => $pricePerUnit,
-                'unit'           => $request->unit,       // ✅ WAJIB
+                'unit'           => 'day',       // ✅ WAJIB
             ]);
 
             // 🔥 KURANGI STOK

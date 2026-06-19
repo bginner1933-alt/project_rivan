@@ -54,19 +54,19 @@ class DatabaseSeeder extends Seeder
         | PRODUCTS
         |--------------------------------------------------------------------------
         */
-        $kerajinanCategory = Category::where('slug', 'Kerajinan')->first();
+        $kerajinanCategory = Category::where('slug', 'kerajinan')->first();
         $aksesorisCategory = Category::where('slug', 'aksesoris')->first();
-        $souvenirCategory = Category::where('slug', 'souvenir')->first();
+        $seserahanCategory = Category::where('slug', 'seserahan')->first();
 
         // Produk 1
         $product1 = Product::updateOrCreate(
-            ['slug' => 'Kayu-Box'],
+            ['slug' => 'kayu-box'],
             [
                 'name' => 'Kotak Penyimpanan Kayu',
                 'description' => 'Dari Kayu Premium',
                 'price' => 50000,
                 'rental_price' => null,
-                'rental_unit' => 'day',
+                'rental_duration' => null,
                 'stock' => 10,
                 'category_id' => $kerajinanCategory->id ?? 1,
                 'is_featured' => true,
@@ -77,13 +77,13 @@ class DatabaseSeeder extends Seeder
         $product2 = Product::updateOrCreate(
             ['slug' => 'souvenir'],
             [
-                'name' => 'Suvenir',
-                'description' => 'Suvenir unik untuk acara pernikahan',
+                'name' => 'Souvenir',
+                'description' => 'Souvenir unik untuk acara pernikahan',
                 'price' => null,
                 'rental_price' => 50000,
-                'rental_unit' => 'day',
+                'rental_duration' => 3,
                 'stock' => 15,
-                'category_id' => $souvenirCategory->id ?? 1,
+                'category_id' => $seserahanCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
@@ -96,13 +96,14 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Souvenir unik untuk acara pernikahan',
                 'price' => null,
                 'rental_price' => 50000,
-                'rental_unit' => 'day',
+                'rental_duration' => 5,
                 'stock' => 50,
-                'category_id' => $souvenirCategory->id ?? 1,
+                'category_id' => $seserahanCategory->id ?? 1,
                 'is_featured' => false,
             ]
         );
 
+        // Produk 4
         $product5 = Product::updateOrCreate(
             ['slug' => 'souvenir2'],
             [
@@ -110,13 +111,14 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Souvenir unik untuk acara pernikahan',
                 'price' => null,
                 'rental_price' => 50000,
-                'rental_unit' => 'day',
+                'rental_duration' => 7,
                 'stock' => 30,
-                'category_id' => $souvenirCategory->id ?? 1,
+                'category_id' => $seserahanCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 5
         $product6 = Product::updateOrCreate(
             ['slug' => 'souvenir3'],
             [
@@ -124,27 +126,29 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Souvenir unik untuk acara pernikahan',
                 'price' => null,
                 'rental_price' => 50000,
-                'rental_unit' => 'day',
+                'rental_duration' => 10,
                 'stock' => 30,
-                'category_id' => $souvenirCategory->id ?? 1,
+                'category_id' => $seserahanCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 6
         $product7 = Product::updateOrCreate(
-            ['slug' => 'suvenir4'],
+            ['slug' => 'souvenir4'],
             [
-                'name' => 'Souvenir',
-                'description' => 'Souvenir unik untuk acara pernikahan',
+                'name' => 'Souvenir Premium',
+                'description' => 'Souvenir premium untuk acara eksklusif',
                 'price' => null,
-                'rental_price' => 50000,
-                'rental_unit' => 'day',
+                'rental_price' => 75000,
+                'rental_duration' => 14,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 7
         $product8 = Product::updateOrCreate(
             ['slug' => 'cincin1'],
             [
@@ -152,97 +156,104 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Cincin untuk acara pernikahan',
                 'price' => 450000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 8
         $product9 = Product::updateOrCreate(
             ['slug' => 'cincin2'],
             [
-                'name' => 'Cincin Pernikahan',
-                'description' => 'Cincin untuk acara pernikahan',
-                'price' => 450000,
+                'name' => 'Cincin Emas',
+                'description' => 'Cincin emas elegan',
+                'price' => 550000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 9
         $product10 = Product::updateOrCreate(
             ['slug' => 'cincin3'],
             [
-                'name' => 'Cincin Pernikahan',
-                'description' => 'Cincin untuk acara pernikahan',
-                'price' => 450000,
+                'name' => 'Cincin Silver',
+                'description' => 'Cincin silver mewah',
+                'price' => 350000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 10
         $product11 = Product::updateOrCreate(
             ['slug' => 'cincin4'],
             [
-                'name' => 'Cincin Pernikahan',
-                'description' => 'Cincin untuk acara pernikahan',
-                'price' => 450000,
+                'name' => 'Cincin Diamond',
+                'description' => 'Cincin berlian premium',
+                'price' => 950000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 11
         $product12 = Product::updateOrCreate(
             ['slug' => 'cincin5'],
             [
-                'name' => 'Cincin Pernikahan',
-                'description' => 'Cincin untuk acara pernikahan',
-                'price' => 450000,
+                'name' => 'Cincin Elegant',
+                'description' => 'Desain modern dan elegan',
+                'price' => 650000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 12
         $product14 = Product::updateOrCreate(
             ['slug' => 'cincin6'],
             [
-                'name' => 'Cincin Pernikahan',
-                'description' => 'Cincin untuk acara pernikahan',
-                'price' => 450000,
+                'name' => 'Cincin Platinum',
+                'description' => 'Cincin platinum eksklusif',
+                'price' => 1250000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 13
         $product15 = Product::updateOrCreate(
             ['slug' => 'cincin7'],
             [
-                'name' => 'Cincin Pernikahan',
-                'description' => 'Cincin untuk acara pernikahan',
-                'price' => 450000,
+                'name' => 'Cincin Luxury',
+                'description' => 'Luxury wedding ring',
+                'price' => 1750000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $aksesorisCategory->id ?? 1,
                 'is_featured' => true,
             ]
         );
 
+        // Produk 14
         $product16 = Product::updateOrCreate(
             ['slug' => 'wadah-kayu'],
             [
@@ -250,7 +261,7 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Wadah untuk menyimpan',
                 'price' => 50000,
                 'rental_price' => null,
-                'rental_unit' => null,
+                'rental_duration' => null,
                 'stock' => 30,
                 'category_id' => $kerajinanCategory->id ?? 1,
                 'is_featured' => true,

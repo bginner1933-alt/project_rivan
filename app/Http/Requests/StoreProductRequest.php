@@ -31,10 +31,11 @@ class StoreProductRequest extends FormRequest
             // RENTAL (SEWA)
             // =========================
             'rental_price' => ['nullable', 'numeric', 'min:0'],
-            'rental_unit' => [
+            'rental_duration' => [
                 'nullable',
                 'required_with:rental_price',
-                'in:hour,day,week,month'
+                'integer',
+                'min:1'
             ],
 
             // =========================
@@ -112,11 +113,14 @@ class StoreProductRequest extends FormRequest
             'rental_price.numeric' =>
                 'Harga sewa harus berupa angka.',
 
-            'rental_unit.required_with' =>
-                'Jika harga sewa diisi, satuan sewa wajib dipilih.',
+            'rental_duration.required_with' =>
+                'Durasi sewa wajib diisi.',
 
-            'rental_unit.in' =>
-                'Satuan sewa tidak valid.',
+            'rental_duration.integer' =>
+                'Durasi sewa harus angka.',
+
+            'rental_duration.min' =>
+                'Durasi sewa minimal 1 hari.',
 
             // =========================
             // STOCK

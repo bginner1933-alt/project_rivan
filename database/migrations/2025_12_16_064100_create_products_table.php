@@ -25,6 +25,10 @@ return new class extends Migration
             $table->string('slug')->unique(); // Slug wajib valid URL dan unik
             $table->text('description')->nullable();
 
+            $table->integer('rental_duration')->nullable();
+
+            $table->decimal('rental_price', 12, 2)->nullable();
+
             // HARGA (PENTING!)
             // MENGAPA DECIMAL? Bukan Float?
             // Float tidak presisi untuk uang (bisa terjadi rounding error).

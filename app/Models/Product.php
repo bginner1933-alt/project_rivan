@@ -28,7 +28,8 @@ class Product extends Model
         'is_featured',
         'stock',
         'rental_price', // Tambahan untuk harga sewa
-        'rental_unit',  // Tambahan untuk satuan sewa (jam, hari, bulan)
+        // 'rental_unit',  // Tambahan untuk satuan sewa (jam, hari, bulan)
+        'rental_duration', // Tambahan untuk durasi sewa (misal: 1 hari, 7 hari, dll)
     ];
 
     // Casts: Konversi tipe data otomatis

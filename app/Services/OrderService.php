@@ -23,7 +23,7 @@ class OrderService
         return DB::transaction(function () use ($user, $cart, $shippingData) {
 
             $subtotal = 0;
-            $shippingCost = 20000;
+            $shippingCost = 30000;
 
             // ✅ HITUNG TOTAL (SUDAH SUPPORT RENT)
             foreach ($cart->items as $item) {

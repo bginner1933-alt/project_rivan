@@ -186,7 +186,9 @@
                                 <p class="text-primary fw-bold fs-5 mb-0">
                                     Rp {{ number_format($item['price'] ?? 0, 0, ',', '.') }}
                                     @if(($item['type'] ?? 'buy') === 'rent')
-                                        <span class="text-muted small fw-normal">/ {{ $item['duration'] ?? 1 }} {{ $item['unit'] ?? 'day' }}</span>
+                                        <span class="text-muted small fw-normal">
+                                            / {{ $product->rental_duration ?? 0 }} Hari
+                                        </span>
                                     @endif
                                 </p>
                             </div>

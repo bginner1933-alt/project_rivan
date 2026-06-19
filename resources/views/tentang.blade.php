@@ -59,7 +59,7 @@
                 
                 {{-- Header --}}
                 <div class="text-center mb-5">
-                    <h1 class="fw-bold text-dark display-5 mb-3">Tentang TokoOnline</h1>
+                    <h1 class="fw-bold text-dark display-5 mb-3">Tentang Wangi 🤩</h1>
                     <p class="text-muted fs-5">Menghadirkan pengalaman belanja dan sewa barang berkualitas dengan teknologi modern dan terpercaya sejak 2024.</p>
                 </div>
 

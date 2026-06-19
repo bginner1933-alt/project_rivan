@@ -125,15 +125,20 @@
                                 </td>
                                 <td class="text-center">
                                     @if(!is_null($product->rental_price) && $product->rental_price > 0)
-                                        @php
-                                            $unitLabels = ['hour' => 'Jam', 'day' => 'Hari', 'week' => 'Minggu', 'month' => 'Bulan'];
-                                        @endphp
                                         <div class="d-flex flex-column">
-                                            <span class="fw-bold text-primary">Rp {{ number_format($product->rental_price, 0, ',', '.') }}</span>
-                                            <small class="text-muted" style="font-size: 0.65rem;">per {{ $unitLabels[$product->rental_unit] ?? 'Hari' }}</small>
+                                            {{-- Format Harga Sewa --}}
+                                            <span class="fw-bold text-primary">
+                                                Rp {{ number_format($product->rental_price, 0, ',', '.') }}
+                                            </span>
+                                            
+                                            {{-- Memanggil angka durasi sewa secara presisi dari database --}}
+                                            <small class="text-muted" style="font-size: 0.65rem;">
+                                                Per {{ $product->rental_duration ?? 0 }} Hari
+                                            </small>
                                         </div>
                                     @else
-                                        <span class="text-muted" style="font-size: 0.75rem;">—</span>
+                                        {{-- Jika produk tidak disewakan --}}
+                                        <span class="text-muted fw-normal">-</span>
                                     @endif
                                 </td>
                                 <td class="text-center pe-4">
