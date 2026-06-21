@@ -2,28 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\City;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Laravolt\Indonesia\Models\Province;
+use Laravolt\Indonesia\Models\City;
+use Laravolt\Indonesia\Models\District;
 
 class CheckoutController extends Controller
 {
-    // Koordinat kota asal toko — ganti sesuai lokasi toko
-    const TOKO_LAT = -7.2106; // Garut - Balubur Limbangan
+    const TOKO_LAT = -7.2106;
     const TOKO_LNG = 107.9101;
+    const TARIF_PER_KM        = 150;
+    const ONGKIR_MINIMUM      = 5000;
+    const FREE_SHIPPING_THRESHOLD = 0; // 0 = nonaktif
 
-    // Tarif per km (Rp). Sesuaikan sesuka hati.
-    const TARIF_PER_KM = 150;
-
-    // Minimum ongkir (Rp)
-    const ONGKIR_MINIMUM = 5000;
-
-    // Gratis ongkir jika subtotal >= nilai ini. Set 0 untuk nonaktif.
-    const FREE_SHIPPING_THRESHOLD = 0;
-
-    /**
-     * Tampilkan halaman checkout
-     */
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -34,24 +26,45 @@ class CheckoutController extends Controller
         }
 
         [$subtotal] = $this->calculateCartTotals($cart);
+        $provinces  = Province::orderBy('name')->get();
 
-        return view('checkout.index', compact('cart', 'subtotal'));
+        return view('checkout.index', compact('cart', 'subtotal', 'provinces'));
     }
 
-    /**
-     * Endpoint AJAX: hitung ongkir berdasarkan jarak
-     * GET /checkout/shipping?city_id=1&subtotal=150000
-     */
+    /** AJAX: ambil kota berdasarkan provinsi */
+    public function getCities(Request $request)
+    {
+        $request->validate(['province_code' => 'required|string']);
+
+        $cities = City::where('province_code', $request->province_code)
+                      ->orderBy('name')
+                      ->get(['code', 'name']);
+
+        return response()->json($cities);
+    }
+
+    /** AJAX: ambil kecamatan berdasarkan kota */
+    public function getDistricts(Request $request)
+    {
+        $request->validate(['city_code' => 'required|string']);
+
+        $districts = District::where('city_code', $request->city_code)
+                             ->orderBy('name')
+                             ->get(['code', 'name']);
+
+        return response()->json($districts);
+    }
+
+    /** AJAX: hitung ongkir berdasarkan kecamatan */
     public function getShipping(Request $request)
     {
         $request->validate([
-            'city_id'  => 'required|integer|exists:cities,id',
-            'subtotal' => 'required|numeric|min:0',
+            'district_code' => 'required|string',
+            'subtotal'      => 'required|numeric|min:0',
         ]);
 
         $subtotal = (float) $request->subtotal;
 
-        // Cek gratis ongkir
         if (self::FREE_SHIPPING_THRESHOLD > 0 && $subtotal >= self::FREE_SHIPPING_THRESHOLD) {
             return response()->json([
                 'success'       => true,
@@ -61,41 +74,52 @@ class CheckoutController extends Controller
             ]);
         }
 
-        $city    = City::findOrFail($request->city_id);
-        $jarakKm = $this->hitungJarak(self::TOKO_LAT, self::TOKO_LNG, $city->lat, $city->lng);
+        $district = District::with('city')->where('code', $request->district_code)->firstOrFail();
 
-        $biayaDasar = max(
-            self::ONGKIR_MINIMUM,
-            round($jarakKm * self::TARIF_PER_KM / 1000) * 1000
-        );
+        // Koordinat kecamatan — pakai lat/lng jika tersedia, fallback ke kota
+        // Sesudah — pakai koordinat dari tabel cities kita sendiri
+        $lat = null;
+        $lng = null;
+
+        // Coba ambil dari tabel cities (laravolt) jika ada kolom koordinat
+        if (isset($district->city->latitude) && $district->city->latitude) {
+            $lat = $district->city->latitude;
+            $lng = $district->city->longitude;
+        }
+
+        // Fallback: cari di tabel cities yang kita buat sebelumnya
+        if (!$lat) {
+            $ourCity = \App\Models\City::where('name', 'like', '%' . $district->city->name . '%')->first();
+            if ($ourCity) {
+                $lat = $ourCity->lat;
+                $lng = $ourCity->lng;
+            }
+        }
+
+        // Last resort: koordinat pusat Indonesia
+        if (!$lat) {
+            $lat = -2.5;
+            $lng = 118.0;
+        }
+
+        $jarakKm    = $this->hitungJarak(self::TOKO_LAT, self::TOKO_LNG, $lat, $lng);
+        $biayaDasar = max(self::ONGKIR_MINIMUM, round($jarakKm * self::TARIF_PER_KM / 1000) * 1000);
 
         $couriers = [
-            [
-                'courier_code' => 'jne',
-                'courier_name' => 'JNE',
-                'services' => [
-                    ['service' => 'OKE', 'description' => 'Ongkos Kirim Ekonomis', 'multiplier' => 0.8,  'etd' => $this->hitungEtd($jarakKm, 'lambat')],
-                    ['service' => 'REG', 'description' => 'Reguler',               'multiplier' => 1.0,  'etd' => $this->hitungEtd($jarakKm, 'normal')],
-                    ['service' => 'YES', 'description' => 'Yakin Esok Sampai',     'multiplier' => 2.0,  'etd' => '1 hari'],
-                ],
-            ],
-            [
-                'courier_code' => 'pos',
-                'courier_name' => 'POS Indonesia',
-                'services' => [
-                    ['service' => 'Pos Biasa', 'description' => 'Layanan Standar', 'multiplier' => 0.75, 'etd' => $this->hitungEtd($jarakKm, 'lambat')],
-                    ['service' => 'Pos Kilat', 'description' => 'Layanan Kilat',   'multiplier' => 1.1,  'etd' => $this->hitungEtd($jarakKm, 'normal')],
-                ],
-            ],
-            [
-                'courier_code' => 'tiki',
-                'courier_name' => 'TIKI',
-                'services' => [
-                    ['service' => 'ECO', 'description' => 'Economy Service',    'multiplier' => 0.85, 'etd' => $this->hitungEtd($jarakKm, 'lambat')],
-                    ['service' => 'REG', 'description' => 'Regular Service',    'multiplier' => 1.0,  'etd' => $this->hitungEtd($jarakKm, 'normal')],
-                    ['service' => 'ONS', 'description' => 'Over Night Service', 'multiplier' => 1.9,  'etd' => '1 hari'],
-                ],
-            ],
+            ['courier_code' => 'jne',  'courier_name' => 'JNE', 'services' => [
+                ['service' => 'OKE', 'description' => 'Ongkos Kirim Ekonomis', 'multiplier' => 0.8,  'etd' => $this->hitungEtd($jarakKm, 'lambat')],
+                ['service' => 'REG', 'description' => 'Reguler',               'multiplier' => 1.0,  'etd' => $this->hitungEtd($jarakKm, 'normal')],
+                ['service' => 'YES', 'description' => 'Yakin Esok Sampai',     'multiplier' => 2.0,  'etd' => '1 hari'],
+            ]],
+            ['courier_code' => 'pos',  'courier_name' => 'POS Indonesia', 'services' => [
+                ['service' => 'Pos Biasa', 'description' => 'Layanan Standar', 'multiplier' => 0.75, 'etd' => $this->hitungEtd($jarakKm, 'lambat')],
+                ['service' => 'Pos Kilat', 'description' => 'Layanan Kilat',   'multiplier' => 1.1,  'etd' => $this->hitungEtd($jarakKm, 'normal')],
+            ]],
+            ['courier_code' => 'tiki', 'courier_name' => 'TIKI', 'services' => [
+                ['service' => 'ECO', 'description' => 'Economy Service',    'multiplier' => 0.85, 'etd' => $this->hitungEtd($jarakKm, 'lambat')],
+                ['service' => 'REG', 'description' => 'Regular Service',    'multiplier' => 1.0,  'etd' => $this->hitungEtd($jarakKm, 'normal')],
+                ['service' => 'ONS', 'description' => 'Over Night Service', 'multiplier' => 1.9,  'etd' => '1 hari'],
+            ]],
         ];
 
         $result = [];
@@ -124,60 +148,53 @@ class CheckoutController extends Controller
             'free_shipping' => false,
             'couriers'      => $result,
             'jarak_km'      => round($jarakKm),
-            'kota'          => "{$city->name}, {$city->province}",
+            'lokasi'        => "{$district->name}, {$district->city->name}",
         ]);
     }
 
-    /**
-     * Simpan pesanan
-     */
     public function store(Request $request, OrderService $orderService)
     {
-        $validated = $request->validate(
-            [
-                'name'            => 'required|string|max:255',
-                'phone'           => 'required|digits_between:10,15',
-                'address'         => 'required|string|max:500',
-                'city_id'         => 'required|integer|exists:cities,id',
-                'courier'         => 'required|string',
-                'courier_service' => 'required|string',
-                'shipping_cost'   => 'required|numeric|min:0',
-            ],
-            [
-                'phone.digits_between'     => 'Nomor WhatsApp harus 10–15 digit angka.',
-                'city_id.required'         => 'Kota tujuan wajib dipilih.',
-                'courier_service.required' => 'Layanan pengiriman wajib dipilih.',
-            ]
-        );
+        $validated = $request->validate([
+            'name'            => 'required|string|max:255',
+            'phone'           => 'required|digits_between:10,15',
+            'address'         => 'required|string|max:500',
+            'province_code'   => 'required|string',
+            'city_code'       => 'required|string',
+            'district_code'   => 'required|string',
+            'courier'         => 'required|string',
+            'courier_service' => 'required|string',
+            'shipping_cost'   => 'required|numeric|min:0',
+        ], [
+            'phone.digits_between'     => 'Nomor WhatsApp harus 10–15 digit angka.',
+            'province_code.required'   => 'Provinsi wajib dipilih.',
+            'city_code.required'       => 'Kota wajib dipilih.',
+            'district_code.required'   => 'Kecamatan wajib dipilih.',
+            'courier_service.required' => 'Layanan pengiriman wajib dipilih.',
+        ]);
 
         try {
             $order = $orderService->createOrder(auth()->user(), $validated);
-
-            return redirect()
-                ->route('orders.show', $order->id)
-                ->with('success', 'Pesanan berhasil dibuat! Silakan lakukan pembayaran.');
+            return redirect()->route('orders.show', $order->id)
+                             ->with('success', 'Pesanan berhasil dibuat! Silakan lakukan pembayaran.');
         } catch (\Throwable $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    // ─── Helpers ─────────────────────────────────────────────
 
     private function calculateCartTotals($cart): array
     {
         $subtotal = 0;
         foreach ($cart->items as $item) {
             $price = $item->price ?? 0;
-            if ($item->type === 'rent') {
-                $subtotal += $price * $item->quantity * ($item->duration ?? 1);
-            } else {
-                $subtotal += $price * $item->quantity;
-            }
+            $subtotal += $item->type === 'rent'
+                ? $price * $item->quantity * ($item->duration ?? 1)
+                : $price * $item->quantity;
         }
         return [$subtotal];
     }
 
-    /** Haversine formula — jarak dua koordinat dalam KM */
     private function hitungJarak(float $lat1, float $lng1, float $lat2, float $lng2): float
     {
         $r    = 6371;
@@ -188,17 +205,18 @@ class CheckoutController extends Controller
         return $r * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
-    /** Estimasi tiba berdasarkan jarak */
     private function hitungEtd(float $jarakKm, string $speed): string
     {
         if ($speed === 'lambat') {
-            if ($jarakKm <= 100)  return '1–2 hari';
-            if ($jarakKm <= 500)  return '3–4 hari';
+            if ($jarakKm <= 50)   return '1 hari';
+            if ($jarakKm <= 200)  return '2–3 hari';
+            if ($jarakKm <= 600)  return '3–5 hari';
             if ($jarakKm <= 1500) return '5–7 hari';
             return '7–14 hari';
         }
-        if ($jarakKm <= 100)  return '1 hari';
-        if ($jarakKm <= 500)  return '2–3 hari';
+        if ($jarakKm <= 50)   return 'Hari ini';
+        if ($jarakKm <= 200)  return '1 hari';
+        if ($jarakKm <= 600)  return '2–3 hari';
         if ($jarakKm <= 1500) return '3–5 hari';
         return '5–7 hari';
     }

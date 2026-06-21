@@ -28,6 +28,8 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('p'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
+                // 'image_path' => 'images/logo.jpeg',
+                'avatar' => 'images/logo.jpeg',
             ]
         );
 
@@ -383,5 +385,13 @@ class DatabaseSeeder extends Seeder
         $this->command->newLine();
         $this->command->info('🎉 Database seeding completed!');
         $this->command->info('📧 Login: admin@example.com / p');
+
+        $source      = public_path('images/logo.jpeg');
+        $destination = storage_path('app/public/images/logo.jpeg');
+
+        if (file_exists($source)) {
+            \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('app/public/images'));
+            \Illuminate\Support\Facades\File::copy($source, $destination);
+        }
     }
 }

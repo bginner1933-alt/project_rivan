@@ -32,23 +32,41 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // 1. Update Data Text (Nama, Email, dll)
-        // fill() mengisi atribut model dengan data validasi, tapi belum disimpan ke DB.
-        // Ini lebih aman daripada $user->update() langsung karena kita mau cek 'isDirty' dulu.
+        // ── Avatar ──
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && !str_starts_with($user->avatar, 'http') && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $filename = 'avatar-' . $user->id . '-' . time() . '.' . $request->file('avatar')->extension();
+            $user->avatar = $request->file('avatar')->storeAs('avatars', $filename, 'public');
+        }
+
+        // ── Info profil ──
         $user->fill($request->validated());
 
-        // 2. Cek Perubahan Email
-        // Jika email berubah, kita harus membatalkan status verifikasi email (isDirty cek perubahan di memory).
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
-        // 3. Simpan ke Database
-        // Method save() baru benar-benar menjalankan query UPDATE ke database.
+        // ── Password (opsional, hanya jika diisi) ──
+        if ($request->filled('current_password')) {
+            if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors([
+                    'current_password' => 'Password saat ini tidak sesuai.',
+                ], 'updatePassword')->withInput();
+            }
+
+            if ($request->filled('password')) {
+                $request->validate([
+                    'password' => ['confirmed', 'min:8'],
+                ]);
+                $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+            }
+        }
+
         $user->save();
 
-        return Redirect::route('profile.edit')
-            ->with('success', 'Profil berhasil diperbarui!');
+        return Redirect::route('profile.edit')->with('success', 'Profil berhasil diperbarui!');
     }
 
     /**

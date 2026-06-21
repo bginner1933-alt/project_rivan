@@ -170,6 +170,12 @@ Route::middleware('auth')->group(function () {
     //     return $response->json();
     // });
 
+    Route::get('/checkout',           [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::get('/checkout/cities',    [CheckoutController::class, 'getCities'])->name('checkout.cities');
+    Route::get('/checkout/districts', [CheckoutController::class, 'getDistricts'])->name('checkout.districts');
+    Route::get('/checkout/shipping',  [CheckoutController::class, 'getShipping'])->name('checkout.shipping');
+    Route::post('/checkout',          [CheckoutController::class, 'store'])->name('checkout.store');
+
     Route::get('/cities', function () {
         return City::select('id','name','province','type')
                 ->orderBy('province')
