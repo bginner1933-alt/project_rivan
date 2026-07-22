@@ -6,12 +6,10 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log; // 🔥 WAJIB TAMBAHKAN INI DI ATAS
 
 class OrderService
 {
-    /**
-     * Membuat Order baru dari Keranjang Belanja User
-     */
     public function createOrder(User $user, array $shippingData): Order
     {
         $cart = $user->cart;
@@ -20,14 +18,30 @@ class OrderService
             throw new \Exception('Keranjang belanja kosong.');
         }
 
-        return DB::transaction(function () use ($user, $cart, $shippingData) {
+        // 🔍 FIX 1: PENGAMAN DATA - Kita paksa ambil dari key apa saja yang dikirim controller
+        // Kita test apakah array-nya membawa data berat
+        $weightCost = 0;
+        if (isset($shippingData['weight_cost'])) {
+            $weightCost = (float) $shippingData['weight_cost'];
+        } elseif (isset($shippingData['biaya_berat'])) {
+            $weightCost = (float) $shippingData['biaya_berat'];
+        }
+
+        $shippingCost = isset($shippingData['shipping_cost']) ? (float) $shippingData['shipping_cost'] : 0;
+
+        // 📝 DEBUG LOG: Cek folder storage/logs/laravel.log setelah kamu checkout!
+        Log::info('Data Masuk ke OrderService:', [
+            'raw_shipping_data' => $shippingData,
+            'parsed_shipping_cost' => $shippingCost,
+            'parsed_weight_cost' => $weightCost
+        ]);
+
+        return DB::transaction(function () use ($user, $cart, $shippingData, $shippingCost, $weightCost) {
 
             $subtotal = 0;
-            $shippingCost = 30000;
 
-            // ✅ HITUNG TOTAL (SUDAH SUPPORT RENT)
+            // HITUNG TOTAL DARI CART ITEMS
             foreach ($cart->items as $item) {
-
                 $product = $item->product()->lockForUpdate()->first();
 
                 if ($item->quantity > $product->stock) {
@@ -43,9 +57,10 @@ class OrderService
                 }
             }
 
-            $totalAmount = $subtotal + $shippingCost;
+            // TOTAL AMOUNT = SUB + ONGKIR + BIAYA BERAT
+            $totalAmount = $subtotal + $shippingCost + $weightCost;
 
-            // ✅ BUAT ORDER
+            // 🔍 FIX 2: BIKIN ORDER DENGAN NAMA PROPERTI YANG DIKUNCI PAS
             $order = Order::create([
                 'user_id'          => $user->id,
                 'order_number'     => 'ORD-' . strtoupper(Str::random(10)),
@@ -54,35 +69,35 @@ class OrderService
                 'shipping_name'    => $shippingData['name'],
                 'shipping_address' => $shippingData['address'],
                 'shipping_phone'   => $shippingData['phone'],
-                'total_amount'     => $totalAmount,
+                
+                // Masukkan nominal ke kolom database
+                'weight_cost'      => $weightCost, 
                 'shipping_cost'    => $shippingCost,
+                'total_amount'     => $totalAmount,
+                'discount_price'   => $totalAmount, 
+                'payment_method'   => $shippingData['payment_method'] ?? 'midtrans',
             ]);
 
-            // ✅ PINDAHKAN CART → ORDER ITEMS (INI YANG PENTING)
+            // PINDAHKAN CART → ORDER ITEMS
             foreach ($cart->items as $item) {
                 $product = $item->product;
-
                 $price = $item->price ?? $product->display_price;
 
-                if ($item->type === 'rent') {
-                    $subtotalItem = $price * $item->quantity * ($item->duration ?? 1);
-                } else {
-                    $subtotalItem = $price * $item->quantity;
-                }
+                $subtotalItem = ($item->type === 'rent')
+                    ? $price * $item->quantity * ($item->duration ?? 1)
+                    : $price * $item->quantity;
 
                 $order->items()->create([
                     'product_id'   => $product->id,
                     'product_name' => $product->name,
-                    'price'        => $price, // 🔥 FIX DI SINI
+                    'price'        => $price,
                     'quantity'     => $item->quantity,
-                    'subtotal'     => $subtotalItem, // 🔥 FIX DI SINI
+                    'subtotal'     => $subtotalItem,
                 ]);
 
-                // kurangi stok
                 $product->decrement('stock', $item->quantity);
             }
 
-            // kosongkan cart
             $cart->items()->delete();
 
             return $order;

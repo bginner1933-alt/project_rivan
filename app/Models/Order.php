@@ -14,6 +14,7 @@ class Order extends Model
         'user_id',
         'order_number',
         'status',
+        'payment_method',
         'payment_status',
         'shipping_name',
         'shipping_address',
@@ -21,6 +22,7 @@ class Order extends Model
         'total_amount',
         'shipping_cost',
         'snap_token',
+        'weight_cost', // 🔥 FIX 1: Tambahkan kolom weight_cost ke fillable
     ];
 
     public function items()

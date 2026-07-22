@@ -137,8 +137,10 @@ Route::middleware('auth')->group(function () {
 
     // CHECKOUT & ORDERS
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::get('/checkout/shipping', [CheckoutController::class, 'getShipping'])->name('checkout.shipping');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/cities', [CheckoutController::class, 'getCities'])->name('checkout.cities');
+    Route::get('/checkout/districts', [CheckoutController::class, 'getDistricts'])->name('checkout.districts');
+    Route::get('/checkout/shipping', [CheckoutController::class, 'getShipping'])->name('checkout.shipping');
 
     Route::prefix('orders')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('orders.index');
@@ -146,6 +148,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{order}/pay', [PaymentController::class, 'show'])->name('orders.pay');
         Route::get('/{order}/success', [PaymentController::class, 'success'])->name('orders.success');
         Route::get('/{order}/pending', [PaymentController::class, 'pending'])->name('orders.pending');
+        Route::put('/orders/{order}/convert-to-cod', [OrderController::class, 'convertToCod'])->name('orders.convertToCod');
     });
 
     // BANTUAN/PENGADUAN USER

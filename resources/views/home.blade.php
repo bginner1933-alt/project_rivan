@@ -83,7 +83,7 @@
                             </div>
                         </div>
                         <div class="side-banner-item shadow-sm">
-                            <img src="{{ asset('images/side-promo-2.jpg') }}" alt="Promo 2">
+                            <img src="{{ asset('storage/avatars/rr.jpg') }}" alt="Promo 2">
                             <div class="side-banner-overlay">
                                 <h6>Voucher Member</h6>
                             </div>

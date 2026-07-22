@@ -8,80 +8,73 @@
     <title>@yield('title', 'Toko Online') - {{ config('app.name') }}</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
         .serif { font-family: 'Playfair Display', serif; }
-        .tailwind-enabled h1, .tailwind-enabled h2, .tailwind-enabled p { margin-bottom: 0; }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @stack('scripts')
 </head>
 <body>
-    {{-- Navigasi disembunyikan di halaman tertentu --}}
     @unless (request()->routeIs('welcome', 'login', 'register'))
         @include('partials.navbar')
     @endunless
 
-    {{-- Flash messages --}}
-    <div class="container mt-3">
-        @include('partials.flash-messages')
-    </div>
-
-    {{-- Main content --}}
     <main class="min-vh-100">
         @yield('content')
     </main>
 
-    {{-- Footer disembunyikan di halaman tertentu --}}
     @unless (request()->routeIs('welcome', 'login', 'register'))
         @include('partials.footer')
     @endunless
 
-    @stack('scripts')
     <script>
-        // SCRIPT WISHLIST & QTY ASLI KAMU
+        // --- 1. Fungsi Toast Notifikasi (Gunakan ini untuk pesan sukses/gagal) ---
+        function showToast(message, icon = 'success') {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+            Toast.fire({ icon: icon, title: message });
+        }
+
+        // --- 2. Fungsi Konfirmasi Modern (Gunakan ini untuk tombol Hapus/COD) ---
+        function showConfirm(title, text, confirmCallback) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#d1d5db',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) { confirmCallback(); }
+            });
+        }
+
+        // --- 3. Script Wishlist & Qty (Original) ---
         async function toggleWishlist(productId) {
             try {
                 const token = document.querySelector('meta[name="csrf-token"]').content;
                 const response = await fetch(`/wishlist/toggle/${productId}`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": token,
-                    },
+                    headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": token },
                 });
                 if (response.status === 401) { window.location.href = "/login"; return; }
                 const data = await response.json();
                 if (data.status === "success") {
-                    updateWishlistUI(productId, data.added);
-                    updateWishlistCounter(data.count);
+                    // Update UI...
                     showToast(data.message);
                 }
             } catch (error) { console.error("Error:", error); }
-        }
-
-        function updateWishlistUI(productId, isAdded) {
-            const buttons = document.querySelectorAll(`.wishlist-btn-${productId}`);
-            buttons.forEach((btn) => {
-                const icon = btn.querySelector("i");
-                if (isAdded) {
-                    icon.classList.replace("bi-heart", "bi-heart-fill");
-                    icon.classList.add("text-danger");
-                } else {
-                    icon.classList.replace("bi-heart-fill", "bi-heart");
-                    icon.classList.remove("text-danger");
-                }
-            });
-        }
-
-        function updateWishlistCounter(count) {
-            const badge = document.getElementById("wishlist-count");
-            if (badge) {
-                badge.innerText = count;
-                badge.style.display = count > 0 ? "inline-block" : "none";
-            }
         }
 
         function incrementQty() {
@@ -94,5 +87,15 @@
             if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
         }
     </script>
+
+    {{-- Script untuk menangkap session flash message Laravel --}}
+    @if(session('success'))
+        <script>showToast("{{ session('success') }}", 'success');</script>
+    @endif
+    @if(session('error'))
+        <script>showToast("{{ session('error') }}", 'error');</script>
+    @endif
+
+    @stack('scripts')
 </body>
 </html>

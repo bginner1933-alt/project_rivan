@@ -41,49 +41,47 @@
 
                             {{-- Field Email --}}
                             <div class="mb-3">
-                                <label for="email" class="form-label fw-bold small text-secondary">Email</label>
-                                <div class="input-group custom-input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-primary">
-                                        <i class="bi bi-envelope"></i>
-                                    </span>
-                                    <input id="email" type="email" class="form-control bg-light border-start-0 @error('email') is-invalid @enderror" 
-                                           name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="nama@email.com">
-                                </div>
-                                @error('email')
-                                    <span class="invalid-feedback d-block animate__animated animate__shakeX" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                           {{-- Ganti bagian @error email kamu dengan ini agar pesan error tampil lebih rapi --}}
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-bold small text-secondary">Email</label>
+                            <div class="input-group custom-input-group">
+                                <span class="input-group-text bg-light border-end-0 text-primary">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input id="email" type="email" class="form-control bg-light border-start-0 @error('email') is-invalid @enderror" 
+                                    name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="nama@email.com">
                             </div>
+                            @error('email')
+                                <div class="invalid-feedback d-block mt-2 animate__animated animate__fadeIn">
+                                    <small class="text-danger fw-bold">{!! $message !!}</small>
+                                </div>
+                            @enderror
+                        </div>
 
-                            {{-- Field Password (DENGAN FITUR MATA) --}}
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between">
-                                    <label for="password" class="form-label fw-bold small text-secondary">Password</label>
-                                    @if (Route::has('password.request'))
-                                        <a class="text-decoration-none small fw-bold text-primary" href="{{ route('password.request') }}">
-                                            Lupa Password?
-                                        </a>
-                                    @endif
-                                </div>
-                                <div class="input-group custom-input-group position-relative">
-                                    <span class="input-group-text bg-light border-end-0 text-primary">
-                                        <i class="bi bi-lock"></i>
-                                    </span>
-                                    <input id="password" type="password" class="form-control bg-light border-start-0 border-end-0 @error('password') is-invalid @enderror" 
-                                           name="password" required autocomplete="current-password" placeholder="••••••••" style="padding-right: 45px;">
-                                    
-                                    {{-- Tombol Mata --}}
-                                    <span class="input-group-text bg-light border-start-0 cursor-pointer" id="togglePassword" style="cursor: pointer;">
-                                        <i class="bi bi-eye-slash text-muted" id="eyeIcon"></i>
-                                    </span>
-                                </div>
-                                @error('password')
-                                    <span class="invalid-feedback d-block animate__animated animate__shakeX" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                        {{-- Untuk Password, hapus @error('email') yang nyelip di bawah password dan ganti dengan @error('password') --}}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label for="password" class="form-label fw-bold small text-secondary">Password</label>
+                                @if (Route::has('password.request'))
+                                    <a class="text-decoration-none small fw-bold text-primary" href="{{ route('password.request') }}">Lupa Password?</a>
+                                @endif
                             </div>
+                            <div class="input-group custom-input-group position-relative">
+                                <span class="input-group-text bg-light border-end-0 text-primary">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input id="password" type="password" class="form-control bg-light border-start-0 border-end-0 @error('password') is-invalid @enderror" 
+                                    name="password" required autocomplete="current-password" placeholder="minimal 8 karakter" style="padding-right: 45px;">
+                                <span class="input-group-text bg-light border-start-0 cursor-pointer" id="togglePassword" style="cursor: pointer;">
+                                    <i class="bi bi-eye-slash text-muted" id="eyeIcon"></i>
+                                </span>
+                            </div>
+                            @error('password')
+                                <div class="invalid-feedback d-block mt-2">
+                                    <small class="text-danger">{{ $message }}</small>
+                                </div>
+                            @enderror
+                        </div>  
 
                             {{-- Remember Me --}}
                             <div class="mb-4 form-check">
@@ -139,27 +137,67 @@
             eyeIcon.classList.toggle('bi-eye');
             eyeIcon.classList.toggle('bi-eye-slash');
         });
+    let attempts = 0;
+    const loginForm = document.querySelector('form');
+
+    loginForm.addEventListener('submit', function(e) {
+        // Cek apakah ada pesan error dari Laravel
+        const errorMsg = document.querySelector('.invalid-feedback');
+        if (errorMsg) {
+            attempts++;
+        }
+
+        if (attempts >= 3) {
+            alert('Coba klik "Lupa Password" atau daftar akun baru Anda');
+            attempts = 0; // Reset counter setelah alert
+        }
     });
+
+    });
+    
 </script>
 
 <style>
-    /* Styling Tambahan */
+    /* Background Pattern */
     body { 
         background-color: #f8faff;
         background-image: radial-gradient(#d1d9e6 0.5px, transparent 0.5px);
         background-size: 20px 20px;
     }
+
+    /* Card & Primary Colors */
     .bg-primary { background: linear-gradient(135deg, #0d6efd 0%, #004dc7 100%) !important; }
     .card { border: none; }
+
+    /* Input Focus State */
     .custom-input-group .form-control:focus {
         background-color: #fff !important;
         border-color: #0d6efd;
         box-shadow: 0 0 10px rgba(13, 110, 253, 0.1);
     }
+
+    /* Hover Animations */
     .hover-grow { transition: all 0.3s ease; }
     .hover-grow:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 20px rgba(13, 110, 253, 0.2) !important;
+    }
+
+    /* Link Style */
+    .hover-link:hover { text-decoration: underline !important; }
+
+    /* Error Message Styling */
+    .invalid-feedback {
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    .invalid-feedback a {
+        color: #dc3545;
+        text-decoration: underline;
+        font-weight: bold;
+    }
+    .invalid-feedback a:hover {
+        color: #b02a37;
     }
 </style>
 @endsection

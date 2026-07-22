@@ -75,9 +75,7 @@
     }
     .sdd-panel.show { display: block; }
 
-    .sdd-search-wrap {
-        padding: 10px 12px; border-bottom: 1px solid #f1f5f9;
-    }
+    .sdd-search-wrap { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
     .sdd-search {
         width: 100%; border: 2px solid #e2e8f0; border-radius: 10px;
         padding: 8px 14px 8px 36px; font-size: 0.875rem;
@@ -97,12 +95,8 @@
     .sdd-item.active      { background: #eff6ff; color: var(--primary-blue); font-weight: 700; }
     .sdd-item mark        { background: #dbeafe; padding: 0; border-radius: 3px; color: inherit; }
 
-    .sdd-empty {
-        padding: 20px; text-align: center; color: #94a3b8; font-size: 0.85rem;
-    }
-    .sdd-loading {
-        padding: 20px; text-align: center; color: #94a3b8; font-size: 0.85rem;
-    }
+    .sdd-empty { padding: 20px; text-align: center; color: #94a3b8; font-size: 0.85rem; }
+    .sdd-loading { padding: 20px; text-align: center; color: #94a3b8; font-size: 0.85rem; }
 
     /* ── Location Steps connector ── */
     .location-steps { display: flex; flex-direction: column; gap: 0; }
@@ -157,11 +151,6 @@
     .service-etd  { font-size: 0.75rem; color: #10b981; font-weight: 600; white-space: nowrap; }
     .service-cost { font-weight: 800; font-size: 0.9rem; color: var(--primary-blue); white-space: nowrap; }
     .jarak-info   { font-size: 0.78rem; color: #94a3b8; text-align: right; margin-bottom: 8px; }
-    .free-shipping-badge {
-        background: linear-gradient(135deg,#10b981,#059669); color: white;
-        border-radius: 14px; padding: 12px 18px; display: flex; align-items: center;
-        gap: 10px; font-weight: 700; font-size: 0.9rem;
-    }
 </style>
 
 <div class="container py-4">
@@ -178,12 +167,14 @@
         </div>
     @endif
 
+    {{-- 🔥 DI BAGIAN INI KITA MASUKKAN TOTAL BERAT SECARA OTOMATIS BERDASARKAN HASIL SUM QUANTITY * WEIGHT DARI RELASI CART ITEMS --}}
     <div id="js-data"
-         data-subtotal="{{ $subtotal }}"
-         data-cities-url="{{ route('checkout.cities') }}"
-         data-districts-url="{{ route('checkout.districts') }}"
-         data-shipping-url="{{ route('checkout.shipping') }}"
-         style="display:none"></div>
+        data-subtotal="{{ $subtotal }}"
+        data-total-weight="{{ $totalWeight }}" {{-- 🔥 Ambil langsung dari variabel Controller yang sudah akurat --}}
+        data-cities-url="{{ route('checkout.cities') }}"
+        data-districts-url="{{ route('checkout.districts') }}"
+        data-shipping-url="{{ route('checkout.shipping') }}"
+        style="display:none"></div>
 
     <div class="row g-4 mt-2">
 
@@ -212,6 +203,22 @@
                                         @else
                                             Rp {{ number_format($item->price??0,0,',','.') }}
                                         @endif
+                                        <br>
+                                        <small class="text-secondary">
+                                            Berat: 
+                                            @php
+                                                // Cek semua kemungkinan nama kolom berat di tabel produk kamu
+                                                $beratSatuan = $item->product->weight ?? $item->product->berat ?? $item->product->weight_formatted ?? 0;
+                                                
+                                                // Jika masih 0, kita beri fallback 1000 gr agar hitungan ongkir/biaya berat tidak rusak
+                                                if ($beratSatuan <= 0) {
+                                                    $beratSatuan = 1000; 
+                                                }
+                                                
+                                                $totalBeratItem = $beratSatuan * $item->quantity;
+                                            @endphp
+                                            {{ $totalBeratItem }} gr
+                                        </small>
                                     </span>
                                 </div>
                                 <div class="text-end fw-bold text-dark small">
@@ -228,6 +235,10 @@
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-secondary fw-medium">Subtotal</span>
                             <span class="fw-bold text-dark">Rp {{ number_format($subtotal,0,',','.') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary fw-medium">Biaya Berat</span>
+                            <span class="fw-bold text-dark" id="display-weight-cost">—</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span class="text-secondary fw-medium">Ongkir</span>
@@ -260,6 +271,7 @@
                         <input type="hidden" name="province_code"   id="h-province" value="">
                         <input type="hidden" name="city_code"       id="h-city"     value="">
                         <input type="hidden" name="district_code"   id="h-district" value="">
+                        <input type="hidden" name="weight_cost"     id="h-weight-cost" value="0">
 
                         <div class="row">
                             {{-- Nama --}}
@@ -293,7 +305,6 @@
                                 <label class="form-label">Lokasi Pengiriman</label>
 
                                 <div class="location-steps">
-
                                     {{-- Provinsi --}}
                                     <div class="location-step">
                                         <div class="sdropdown-wrapper" id="prov-wrap">
@@ -356,7 +367,6 @@
                                             </div>
                                         </div>
                                     </div>
-
                                 </div>
 
                                 {{-- Breadcrumb --}}
@@ -395,6 +405,26 @@
                             </div>
                         </div>
 
+                        {{-- Pilihan Metode Pembayaran --}}
+                        {{-- <div class="col-12 mb-4">
+                            <label class="form-label">Metode Pembayaran</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="payment_method" id="pay-midtrans" value="midtrans" checked autocomplete="off">
+                                    <label class="btn btn-outline-primary w-100 py-3 rounded-4 fw-bold" for="pay-midtrans">
+                                        <i class="bi bi-credit-card me-2"></i>Online Payment
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="payment_method" id="pay-cod" value="cod" autocomplete="off">
+                                    <label class="btn btn-outline-primary w-100 py-3 rounded-4 fw-bold" for="pay-cod">
+                                        <i class="bi bi-cash-coin me-2"></i>Bayar di Tempat (COD)
+                                    </label>
+                                </div>
+                            </div>
+                            @error('payment_method')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        </div> --}}
+
                         <div class="rounded-4 mb-4 d-flex align-items-start p-3" style="background:#eff6ff;">
                             <i class="bi bi-shield-check text-primary me-3 fs-4"></i>
                             <p class="small text-muted mb-0">
@@ -417,6 +447,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const jsData       = document.getElementById('js-data');
     const subtotal     = parseFloat(jsData.dataset.subtotal);
+    const totalWeight  = parseInt(jsData.dataset.totalWeight) || 1000; // 🔥 Membaca data-total-weight dinamis dari DOM
     const citiesUrl    = jsData.dataset.citiesUrl;
     const districtsUrl = jsData.dataset.districtsUrl;
     const shippingUrl  = jsData.dataset.shippingUrl;
@@ -511,13 +542,11 @@ document.addEventListener('DOMContentLoaded', function () {
         updateBreadcrumb();
 
         if (key === 'prov') {
-            // Reset city & district
             resetLevel('city'); resetLevel('dist');
             el('h-province').value = code;
             el('h-city').value     = '';
             el('h-district').value = '';
 
-            // Show & load city
             el('city-step').style.display = 'block';
             el('city-trigger').classList.add('disabled');
             el('city-list').innerHTML = `<div class="sdd-loading"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuat...</div>`;
@@ -595,117 +624,210 @@ document.addEventListener('DOMContentLoaded', function () {
         renderList(key, state[key].items);
     }
 
-    // ── Breadcrumb ────────────────────────────────────────────
+    // ── Breadcrumb Generator ──────────────────────────────────
     function updateBreadcrumb() {
-        const bc = el('loc-breadcrumb');
-        if (!state.prov.name) { bc.classList.remove('show'); return; }
-        let html = `<i class="bi bi-geo-alt-fill text-primary"></i>${state.prov.name}`;
-        if (state.city.name) html += `<span class="sep">›</span>${state.city.name}`;
-        if (state.dist.name) html += `<span class="sep">›</span><strong>${state.dist.name}</strong>`;
-        bc.innerHTML = html;
-        bc.classList.add('show');
+        const parts = [];
+        if (state.prov.name) parts.push(state.prov.name);
+        if (state.city.name) parts.push(state.city.name);
+        if (state.dist.name) parts.push(state.dist.name);
+
+        const breadEl = el('loc-breadcrumb');
+        if (parts.length > 0) {
+            breadEl.innerHTML = parts.map((p, idx) => `<span>${p}</span>${idx < parts.length - 1 ? '<span class="sep">/</span>' : ''}`).join('');
+            breadEl.classList.add('show');
+        } else {
+            breadEl.classList.remove('show');
+        }
     }
 
-    // ── Fetch shipping ────────────────────────────────────────
-    function fetchShipping(districtCode) {
+    // ── Fetch Shipping Cost + BIAYA BERAT ───────────────────────────────────
+    window.fetchShipping = function (districtCode) {
         lastDistrictCode = districtCode;
-        disablePay('Memuat ongkir...');
+        
+        const panel     = el('shipping-panel');
+        const skeleton  = el('shipping-skeleton');
+        const optionsEl = el('shipping-options');
+        const errorEl   = el('shipping-error');
+        const jarakEl   = el('jarak-info');
 
-        el('shipping-panel').style.display  = 'block';
-        el('shipping-skeleton').style.display = 'block';
-        el('shipping-options').innerHTML    = '';
-        el('shipping-error').style.display  = 'none';
-        el('jarak-info').style.display      = 'none';
+        panel.style.display   = 'block';
+        skeleton.style.display = 'block';
+        optionsEl.innerHTML   = '';
+        errorEl.style.display = 'none';
+        if (jarakEl) jarakEl.style.display = 'none';
+        disablePay('Memuat opsi ongkos kirim...');
 
-        fetch(`${shippingUrl}?district_code=${districtCode}&subtotal=${subtotal}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                          || document.querySelector('input[name="_token"]')?.value;
+
+        // 🔥 BERAT DINAMIS BERHASIL DIKIRIM KE CONTROLLER
+        fetch(`${shippingUrl}?district_code=${districtCode}&subtotal=${subtotal}&weight=${totalWeight}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
         })
-        .then(r => r.json())
-        .then(data => {
-            el('shipping-skeleton').style.display = 'none';
-            if (!data.success) { showShipError(data.message || 'Gagal memuat ongkir.'); return; }
-
-            if (data.free_shipping) {
-                el('shipping-options').innerHTML = `
-                    <div class="free-shipping-badge">
-                        <i class="bi bi-gift-fill fs-5"></i>
-                        <div><div>${data.message}</div>
-                        <div style="font-size:0.75rem;opacity:0.85;font-weight:500;">Pesananmu bebas biaya pengiriman</div></div>
-                    </div>`;
-                enablePay('free', 'GRATIS', 0);
-                updateSummary(0, true);
+        .then(r => {
+            if (!r.ok) {
+                return r.json().then(err => { throw err; });
+            }
+            return r.json();
+        })
+        .then(res => {
+            skeleton.style.display = 'none';
+            
+            if (!res.success) {
+                showShippingError(res.message || 'Layanan pengiriman tidak tersedia.');
                 return;
             }
 
-            if (data.jarak_km) {
-                el('jarak-info').style.display = 'block';
-                el('jarak-info').innerHTML = `<i class="bi bi-signpost-2 me-1"></i>Jarak ke <strong>${data.lokasi}</strong>: ~${data.jarak_km} km`;
+            if (res.free_shipping) {
+                optionsEl.innerHTML = `
+                    <div class="alert alert-success d-flex align-items-center animate__animated animate__fadeIn">
+                        <i class="bi bi-gift-fill me-2 fs-4"></i>
+                        <div>${res.message}</div>
+                    </div>
+                `;
+                applyShipping(0, 'free', 'free');
+                return;
             }
 
-            renderShipping(data.couriers);
-        })
-        .catch(() => { el('shipping-skeleton').style.display = 'none'; showShipError('Koneksi bermasalah.'); });
-    }
+            if (!res.couriers || res.couriers.length === 0) {
+                showShippingError('Tidak ada kurir pengiriman yang tersedia saat ini.');
+                return;
+            }
 
-    window.retryShipping = () => { if (lastDistrictCode) fetchShipping(lastDistrictCode); };
-    function showShipError(msg) { el('shipping-error-msg').textContent = msg; el('shipping-error').style.display = 'block'; }
+            // Tampilkan info berat
+            if (res.weight_kg) {
+                jarakEl.style.display = 'block';
+                jarakEl.innerHTML = `<i class="bi bi-box-seam me-1"></i>Total Berat Paket: <strong>${res.weight_kg} kg</strong> (${totalWeight} gr)`;
+            }
 
-    // ── Render shipping options ───────────────────────────────
-    function renderShipping(couriers) {
-        const box = el('shipping-options');
-        box.innerHTML = '';
-        couriers.forEach(group => {
-            const g = document.createElement('div');
-            g.className = 'courier-group';
-            g.innerHTML = `<div class="courier-group-header">${group.courier_name}</div>`;
-            group.services.forEach((svc, idx) => {
-                const rid = `svc_${group.courier_code}_${idx}`;
-                const inp = document.createElement('input');
-                inp.type = 'radio'; inp.name = 'shipping_choice'; inp.id = rid;
-                inp.className = 'service-option';
-                inp.dataset.courier = group.courier_code;
-                inp.dataset.service = svc.service;
-                inp.dataset.cost    = svc.cost;
-                inp.addEventListener('change', function () {
-                    enablePay(this.dataset.courier, this.dataset.service, parseFloat(this.dataset.cost));
-                    updateSummary(parseFloat(this.dataset.cost));
+            let html = '';
+            res.couriers.forEach(group => {
+                html += `
+                    <div class="courier-group animate__animated animate__fadeInUp">
+                        <div class="courier-group-header">${group.courier_name}</div>
+                `;
+
+                group.services.forEach(serv => {
+                    const totalCost = serv.total_cost;  
+                    const costText  = totalCost === 0 ? 'GRATIS' : rupiah(totalCost);
+                    const etdText   = serv.etd_label
+                        ? `<div class="service-etd"><i class="bi bi-clock me-1"></i>${serv.etd_label}</div>`
+                        : '';
+
+                    html += `
+                        <input type="radio" name="shipping_service_select"
+                            id="ship-${group.courier_code}-${serv.service}"
+                            class="service-option"
+                            value="${totalCost}"
+                            data-courier="${group.courier_code}"
+                            data-service="${serv.service}"
+                            data-biaya-berat="${serv.biaya_berat}"
+                            onclick="applyShipping(${totalCost}, '${group.courier_code}', '${serv.service}', ${serv.biaya_berat})">
+                        <label for="ship-${group.courier_code}-${serv.service}" class="service-label">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="service-radio-dot"></div>
+                                <div>
+                                    <div class="service-name">${group.courier_name} ${serv.service}</div>
+                                    <div class="service-desc">${serv.description || 'Layanan Pengiriman'}</div>
+                                    <div class="service-desc text-muted" style="font-size: 0.75rem;">
+                                        Tarif: ${rupiah(serv.cost)} + Tambahan Berat: ${rupiah(serv.biaya_berat)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="service-cost">${costText}</div>
+                                ${etdText}
+                            </div>
+                        </label>
+                    `;
                 });
-                const lbl = document.createElement('label');
-                lbl.htmlFor = rid; lbl.className = 'service-label';
-                lbl.innerHTML = `
-                    <div class="service-radio-dot"></div>
-                    <div class="flex-grow-1">
-                        <div class="service-name">${group.courier_name} ${svc.service}</div>
-                        <div class="service-desc">${svc.description}</div>
-                    </div>
-                    <div class="text-end">
-                        <div class="service-cost">${rupiah(svc.cost)}</div>
-                        <div class="service-etd"><i class="bi bi-clock me-1"></i>${svc.etd_label}</div>
-                    </div>`;
-                g.appendChild(inp); g.appendChild(lbl);
+
+                html += `</div>`;
             });
-            box.appendChild(g);
+
+            optionsEl.innerHTML = html;
+            disablePay('Pilih layanan pengiriman');
+        })
+        .catch(err => {
+            skeleton.style.display = 'none';
+            console.error('Penyebab Validasi/Auth Gagal:', err);
+            const errorMsg = err.message || (err.errors ? Object.values(err.errors).flat().join(', ') : 'Terjadi masalah koneksi ke server.');
+            showShippingError(errorMsg);
         });
+    };
+
+    window.retryShipping = function() {
+        if (lastDistrictCode) fetchShipping(lastDistrictCode);
+    };
+
+    function showShippingError(msg) {
+        el('shipping-error-msg').textContent = msg;
+        el('shipping-error').style.display = 'block';
+        disablePay('Pengiriman tidak tersedia');
     }
 
-    // ── Summary & button ──────────────────────────────────────
-    function updateSummary(cost, isFree = false) {
-        el('display-shipping').textContent = isFree ? 'GRATIS' : rupiah(cost);
-        el('display-shipping').style.color = isFree ? '#10b981' : '#1e293b';
-        el('display-total').textContent    = rupiah(subtotal + (isFree ? 0 : cost));
-    }
+    // ── Apply Ongkir & Update Grand Total ───────────────────
+    window.applyShipping = function (totalCost, courier, service, biayaBerat) {
+        console.log('applyShipping dipanggil:', { totalCost, courier, service, biayaBerat });
+        
+        if (el('h-cost')) el('h-cost').value = totalCost;
+        if (el('h-courier')) el('h-courier').value = courier;
+        if (el('h-service')) el('h-service').value = service;
+        if (el('h-weight-cost')) el('h-weight-cost').value = biayaBerat || 0;
 
-    function enablePay(courier, service, cost) {
-        el('h-cost').value = cost; el('h-courier').value = courier; el('h-service').value = service;
-        el('btn-pay-text').textContent = 'Bayar Sekarang'; el('btn-pay').disabled = false;
-    }
+        if (document.getElementsByName('shipping_cost')[0])
+            document.getElementsByName('shipping_cost')[0].value = totalCost;
+        if (document.getElementsByName('courier')[0])
+            document.getElementsByName('courier')[0].value = courier;
+        if (document.getElementsByName('courier_service')[0])
+            document.getElementsByName('courier_service')[0].value = service;
+        if (document.getElementsByName('weight_cost')[0])
+            document.getElementsByName('weight_cost')[0].value = biayaBerat || 0;
 
-    function disablePay(label = 'Pilih lokasi pengiriman dulu') {
-        el('h-cost').value = 0; el('h-courier').value = ''; el('h-service').value = '';
-        el('btn-pay-text').textContent = label; el('btn-pay').disabled = true;
-        el('display-shipping').textContent = '—'; el('display-shipping').style.color = '#94a3b8';
-        el('display-total').textContent = rupiah(subtotal);
+        const ongkirMurni = totalCost - (biayaBerat || 0);
+        const shippingDisp = el('display-shipping');
+        if (shippingDisp) {
+            shippingDisp.textContent = ongkirMurni <= 0 ? 'GRATIS' : rupiah(ongkirMurni);
+            shippingDisp.style.color = ongkirMurni <= 0 ? '#10b981' : '#1e293b';
+        }
+
+        const weightDisp = el('display-weight-cost');
+        if (weightDisp) {
+            weightDisp.textContent = biayaBerat > 0 ? rupiah(biayaBerat) : 'Gratis';
+            weightDisp.style.color = '#1e293b';
+        }
+
+        if (el('display-total'))
+            el('display-total').textContent = rupiah(subtotal + totalCost);
+
+        const btnPay = el('btn-pay');
+        if (btnPay) {
+            btnPay.removeAttribute('disabled');
+            if (el('btn-pay-text')) el('btn-pay-text').textContent = 'Lanjutkan ke Pembayaran';
+        }
+    };
+
+    // ── Disable Pay Button Helper ───────────────────────────
+    function disablePay(text) {
+        const btnPay = el('btn-pay');
+        if (btnPay) {
+            btnPay.setAttribute('disabled', 'true');
+            if (el('btn-pay-text')) el('btn-pay-text').textContent = text;
+        }
+        
+        if (el('display-shipping')) {
+            el('display-shipping').textContent = '—';
+            el('display-shipping').style.color = '#94a3b8';
+        }
+        if (el('display-weight-cost')) el('display-weight-cost').textContent = '—';
+        if (el('display-total')) el('display-total').textContent = rupiah(subtotal);
     }
-});
+});     
 </script>
 @endsection

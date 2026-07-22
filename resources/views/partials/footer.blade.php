@@ -63,12 +63,11 @@
 
                 <div class="footer-contact">
                     <p>
-                        <a href="https://www.google.com/maps/place/Kp.Sindang+Tengah+Rt+05%2F07,+Limbangan+Tengah,+Kec.+Balubur+Limbangan,+Kabupaten+Garut,+Jawa+Barat+44186/@-7.2105678,107.9078783,17z/data=!3m1!4b1!4m5!3m4!1s0x2e655d9c8a9b8f5:0x6c9e7a1c8b8f8c8!8m2!3d-7.2105678!4d107.910067?hl=id" 
+                        <a href="https://www.google.com/maps/place/Kp.Sindang+Tengah+Rt+05%2F07,+Limbangan+Tengah,+Kec.+Balubur+Limbangan,+Kabupaten+Garut,+Jawa+Barat+44186/@-7.2105678,107.9078783,17z"
                         target="_blank" 
                         class="contact-phone">
-
                             <i class="bi bi-geo-alt phone-icon"></i>
-                            Kp.Sindang Tengah Rt 05/07, Limbangan Tengah, Kec. Balubur Limbangan, Kabupaten Garut, Jawa Barat 44186
+                            Lihat Lokasi Toko
                         </a>
                     </p>
                     <p>

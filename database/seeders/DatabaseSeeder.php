@@ -3,12 +3,13 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,36 +19,58 @@ class DatabaseSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
+        | WILAYAH INDONESIA (Laravolt)
+        |--------------------------------------------------------------------------
+        */
+        $this->command->info('🗺️  Seeding wilayah Indonesia (ini agak lama)...');
+        $this->call(\Laravolt\Indonesia\Seeds\ProvincesSeeder::class);
+        $this->call(\Laravolt\Indonesia\Seeds\CitiesSeeder::class);
+        $this->call(\Laravolt\Indonesia\Seeds\DistrictsSeeder::class);
+        $this->call(\Laravolt\Indonesia\Seeds\VillagesSeeder::class);
+        $this->command->info('✅ Wilayah Indonesia selesai');
+
+        /*
+        |--------------------------------------------------------------------------
         | ADMIN
         |--------------------------------------------------------------------------
         */
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Administrator',
-                'password' => Hash::make('p'),
-                'role' => 'admin',
-                'email_verified_at' => now(),
-                // 'image_path' => 'images/logo.jpeg',
-                'avatar' => 'images/logo.jpeg',
+                'name'               => 'Administrator',
+                'password'           => Hash::make('p'),
+                'role'               => 'admin',
+                'email_verified_at'  => now(),
+                'avatar'             => 'images/logo.jpeg',
             ]
         );
 
-        $this->command->info('✅ Admin user ready');
+        // Copy logo ke storage agar foto profil admin langsung muncul
+        $source      = public_path('images/logo.jpeg');
+        $destination = storage_path('app/public/images/logo.jpeg');
+
+        if (file_exists($source)) {
+            File::ensureDirectoryExists(storage_path('app/public/images'));
+            File::copy($source, $destination);
+        }
+
+        $this->command->info('✅ Admin user ready (admin@example.com / p)');
 
         /*
         |--------------------------------------------------------------------------
-        | CATEGORY
+        | CATEGORIES
         |--------------------------------------------------------------------------
         */
-        $categories = ['Kerajinan', 'Aksesoris', 'Seserahan'];
-
-        foreach ($categories as $cat) {
+        foreach (['Kerajinan', 'Aksesoris', 'Seserahan'] as $cat) {
             Category::updateOrCreate(
                 ['slug' => Str::slug($cat)],
                 ['name' => $cat]
             );
         }
+
+        $kerajinan = Category::where('slug', 'kerajinan')->first();
+        $aksesoris = Category::where('slug', 'aksesoris')->first();
+        $seserahan = Category::where('slug', 'seserahan')->first();
 
         $this->command->info('✅ Categories created');
 
@@ -56,342 +79,954 @@ class DatabaseSeeder extends Seeder
         | PRODUCTS
         |--------------------------------------------------------------------------
         */
-        $kerajinanCategory = Category::where('slug', 'kerajinan')->first();
-        $aksesorisCategory = Category::where('slug', 'aksesoris')->first();
-        $seserahanCategory = Category::where('slug', 'seserahan')->first();
 
-        // Produk 1
-        $product1 = Product::updateOrCreate(
-            ['slug' => 'kayu-box'],
+        // ── Kerajinan ─────────────────────────────────────────────────────────
+        $products = [
             [
-                'name' => 'Kotak Penyimpanan Kayu',
-                'description' => 'Dari Kayu Premium',
-                'price' => 50000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 10,
-                'category_id' => $kerajinanCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 2
-        $product2 = Product::updateOrCreate(
-            ['slug' => 'souvenir'],
+                'slug'             => 'kayu-box',
+                'name'             => 'Kotak Penyimpanan Kayu',
+                'description'      => 'Dari Kayu Premium',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 10,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/kotak.jpeg',
+            ],
             [
-                'name' => 'Souvenir',
-                'description' => 'Souvenir unik untuk acara pernikahan',
-                'price' => null,
-                'rental_price' => 50000,
-                'rental_duration' => 3,
-                'stock' => 15,
-                'category_id' => $seserahanCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
+                'slug'             => 'wadah-kayu',
+                'name'             => 'Wadah Kayu',
+                'description'      => 'Wadah untuk menyimpan',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar16.jpg',
+            ],
 
-        // Produk 3
-        $product3 = Product::updateOrCreate(
-            ['slug' => 'souvenir1'],
+            // ── Seserahan ──────────────────────────────────────────────────────
             [
-                'name' => 'Souvenir',
-                'description' => 'Souvenir unik untuk acara pernikahan',
-                'price' => null,
-                'rental_price' => 50000,
-                'rental_duration' => 5,
-                'stock' => 50,
-                'category_id' => $seserahanCategory->id ?? 1,
-                'is_featured' => false,
-            ]
-        );
-
-        // Produk 4
-        $product5 = Product::updateOrCreate(
-            ['slug' => 'souvenir2'],
+                'slug'             => 'souvenir',
+                'name'             => 'Souvenir',
+                'description'      => 'Souvenir unik untuk acara pernikahan',
+                'price'            => null,
+                'rental_price'     => 50000,
+                'rental_duration'  => 3,
+                'stock'            => 15,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/kotak4.jpg',
+            ],
             [
-                'name' => 'Souvenir',
-                'description' => 'Souvenir unik untuk acara pernikahan',
-                'price' => null,
-                'rental_price' => 50000,
-                'rental_duration' => 7,
-                'stock' => 30,
-                'category_id' => $seserahanCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 5
-        $product6 = Product::updateOrCreate(
-            ['slug' => 'souvenir3'],
+                'slug'             => 'souvenir1',
+                'name'             => 'Souvenir',
+                'description'      => 'Souvenir unik untuk acara pernikahan',
+                'price'            => null,
+                'rental_price'     => 50000,
+                'rental_duration'  => 5,
+                'stock'            => 50,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => false,
+                'image'            => 'images/kotak6.jpg',
+            ],
             [
-                'name' => 'Souvenir',
-                'description' => 'Souvenir unik untuk acara pernikahan',
-                'price' => null,
-                'rental_price' => 50000,
-                'rental_duration' => 10,
-                'stock' => 30,
-                'category_id' => $seserahanCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 6
-        $product7 = Product::updateOrCreate(
-            ['slug' => 'souvenir4'],
+                'slug'             => 'souvenir2',
+                'name'             => 'Souvenir',
+                'description'      => 'Souvenir unik untuk acara pernikahan',
+                'price'            => null,
+                'rental_price'     => 50000,
+                'rental_duration'  => 7,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/kotak5.jpg',
+            ],
             [
-                'name' => 'Souvenir Premium',
-                'description' => 'Souvenir premium untuk acara eksklusif',
-                'price' => null,
-                'rental_price' => 75000,
-                'rental_duration' => 14,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 7
-        $product8 = Product::updateOrCreate(
-            ['slug' => 'cincin1'],
+                'slug'             => 'souvenir3',
+                'name'             => 'Souvenir',
+                'description'      => 'Souvenir unik untuk acara pernikahan',
+                'price'            => null,
+                'rental_price'     => 50000,
+                'rental_duration'  => 10,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/kotak6.jpg',
+            ],
             [
-                'name' => 'Cincin Pernikahan',
-                'description' => 'Cincin untuk acara pernikahan',
-                'price' => 450000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
+                'slug'             => 'souvenir4',
+                'name'             => 'Souvenir Premium',
+                'description'      => 'Souvenir premium untuk acara eksklusif',
+                'price'            => null,
+                'rental_price'     => random_int(70000, 110000),
+                'rental_duration'  => 14,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/kotak7.jpg',
+            ],
 
-        // Produk 8
-        $product9 = Product::updateOrCreate(
-            ['slug' => 'cincin2'],
+            // ── Aksesoris ──────────────────────────────────────────────────────
             [
-                'name' => 'Cincin Emas',
-                'description' => 'Cincin emas elegan',
-                'price' => 550000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 9
-        $product10 = Product::updateOrCreate(
-            ['slug' => 'cincin3'],
+                'slug'             => 'cincin1',
+                'name'             => 'Cincin Pernikahan',
+                'description'      => 'Cincin untuk acara pernikahan',
+                'price'            => random_int(400000, 700000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar8.jpg',
+            ],
             [
-                'name' => 'Cincin Silver',
-                'description' => 'Cincin silver mewah',
-                'price' => 350000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 10
-        $product11 = Product::updateOrCreate(
-            ['slug' => 'cincin4'],
+                'slug'             => 'cincin2',
+                'name'             => 'Cincin Emas',
+                'description'      => 'Cincin emas elegan',
+                'price'            => random_int(500000, 800000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar9.jpg',
+            ],
             [
-                'name' => 'Cincin Diamond',
-                'description' => 'Cincin berlian premium',
-                'price' => 950000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 11
-        $product12 = Product::updateOrCreate(
-            ['slug' => 'cincin5'],
+                'slug'             => 'cincin3',
+                'name'             => 'Cincin Silver',
+                'description'      => 'Cincin silver mewah',
+                'price'            => random_int(300000, 600000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar10.jpg',
+            ],
             [
-                'name' => 'Cincin Elegant',
-                'description' => 'Desain modern dan elegan',
-                'price' => 650000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 12
-        $product14 = Product::updateOrCreate(
-            ['slug' => 'cincin6'],
+                'slug'             => 'cincin4',
+                'name'             => 'Cincin Diamond',
+                'description'      => 'Cincin berlian premium',
+                'price'            => random_int(900000, 1400000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar11.jpg',
+            ],
             [
-                'name' => 'Cincin Platinum',
-                'description' => 'Cincin platinum eksklusif',
-                'price' => 1250000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 13
-        $product15 = Product::updateOrCreate(
-            ['slug' => 'cincin7'],
+                'slug'             => 'cincin65735',
+                'name'             => 'Cincin Elegant',
+                'description'      => 'Desain modern dan elegan',
+                'price'            => random_int(600000, 1000000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar12.jpg',
+            ],
             [
-                'name' => 'Cincin Luxury',
-                'description' => 'Luxury wedding ring',
-                'price' => 1750000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $aksesorisCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
-
-        // Produk 14
-        $product16 = Product::updateOrCreate(
-            ['slug' => 'wadah-kayu'],
+                'slug'             => 'cincin6746',
+                'name'             => 'Cincin Platinum',
+                'description'      => 'Cincin platinum eksklusif',
+                'price'            => random_int(1200000, 1700000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar14.jpg',
+            ],
             [
-                'name' => 'Wadah Kayu',
-                'description' => 'Wadah untuk menyimpan',
-                'price' => 50000,
-                'rental_price' => null,
-                'rental_duration' => null,
-                'stock' => 30,
-                'category_id' => $kerajinanCategory->id ?? 1,
-                'is_featured' => true,
-            ]
-        );
+                'slug'             => 'cincin36577',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/gambar15.jpg',
+            ],
+            [
+                'slug'             => 'cincin76587',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/poto1.jpg',
+            ],
+            [
+                'slug'             => 'cincin53677',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/poto2.jpg',
+            ],
+            [
+                'slug'             => 'cincin57687',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika.jpg',
+            ],
+            [
+                'slug'             => 'cincin6577',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/kotak4.jpg',
+            ],
+            [
+                'slug'             => 'cincin56377',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika1.jpg',
+            ],
+            [
+                'slug'             => 'cincin657657',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika2.jpg',
+            ],
+            [
+                'slug'             => 'cincin67637',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika3.jpg',
+            ],
+            [
+                'slug'             => 'cincin67687',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika4 .jpg',
+            ],
+            [
+                'slug'             => 'cincin65767',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika5.jpg',
+            ],
+            [
+                'slug'             => 'cincin346767',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika6.jpg',
+            ],
+            [
+                'slug'             => 'cincin65847',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $seserahan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika7.jpg',
+            ],
+            [
+                'slug'             => 'cincin658657',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika8.jpg',
+            ],
+            [
+                'slug'             => 'cincin756767',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika9.jpg',
+            ],
+            [
+                'slug'             => 'cincin67877',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika10.jpg',
+            ],
+            [
+                'slug'             => 'cincin7677',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika11.jpg',
+            ],
+            [
+                'slug'             => 'cincin9897',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika12.jpg',
+            ],
+            [
+                'slug'             => 'cincin245657',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika13.jpg',
+            ],
+            [
+                'slug'             => 'cincin45677',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika14.jpg',
+            ],
+            [
+                'slug'             => 'cincin245657',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika15.jpg',
+            ],
+            [
+                'slug'             => 'cincin245657',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika16.jpg',
+            ],
+            [
+                'slug'             => 'cincin34567',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika17.jpg',
+            ],
+            [
+                'slug'             => 'cincin3677',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika18.jpg',
+            ],
+            [
+                'slug'             => 'cincin45677',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika19.jpg',
+            ],
+            [
+                'slug'             => 'cincin6577',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika20.jpg',
+            ],
+            [
+                'slug'             => 'cincin45767',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika21.jpg',
+            ],
+            [
+                'slug'             => 'cincin67547',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika22.jpg',
+            ],
+            [
+                'slug'             => 'cincin5467',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika23.jpg',
+            ],
+            [
+                'slug'             => 'cincin3437',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika24.jpg',
+            ],
+            [
+                'slug'             => 'cincin4577',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika25.jpg',
+            ],
+            [
+                'slug'             => 'cincin7456576',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $kerajinan->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika26.jpg',
+            ],
+            [
+                'slug'             => 'cincin7674',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika27.jpg',
+            ],
+            [
+                'slug'             => 'cincin56767',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika28.jpg',
+            ],
+            [
+                'slug'             => 'cincin765765',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika29.jpg',
+            ],
+            [
+                'slug'             => 'cincin74567',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika30.jpg',
+            ],
+            [
+                'slug'             => 'cincin7154',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika31.jpg',
+            ],
+            [
+                'slug'             => 'cincin7256',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika32.jpg',
+            ],
+            [
+                'slug'             => 'cincin7657',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika33.jpg',
+            ],
+            [
+                'slug'             => 'cincin756',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika34.jpg',
+            ],
+            [
+                'slug'             => 'cincin75678',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika35.jpg',
+            ],
+            [
+                'slug'             => 'cincin75676',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika36.jpg',
+            ],
+            [
+                'slug'             => 'cincin7567',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika37.jpg',
+            ],
+            [
+                'slug'             => 'cincin7457',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika38.jpg',
+            ],
+            [
+                'slug'             => 'cincin5787',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika39.jpg',
+            ],
+            [
+                'slug'             => 'cincin76587',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika40.jpg',
+            ],
+            [
+                'slug'             => 'cincin7657',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika41.jpg',
+            ],
+            [
+                'slug'             => 'cincin756',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika42.jpg',
+            ],
+            [
+                'slug'             => 'cincin7536',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika43.jpg',
+            ],
+            [
+                'slug'             => 'cincin537',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika44.jpg',
+            ],
+            [
+                'slug'             => 'cincin756',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika45.jpg',
+            ],
+            [
+                'slug'             => 'cincin7667',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika46.jpg',
+            ],
+            [
+                'slug'             => 'cincin767',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika47.jpg',
+            ],
+            [
+                'slug'             => 'cincin3247',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika48.jpg',
+            ],
+            [
+                'slug'             => 'cincin567',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika49.jpg',
+            ],
+            [
+                'slug'             => 'cincin6547',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika50.jpg',
+            ],
+            [
+                'slug'             => 'cincin457',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika51.jpg',
+            ],
+            [
+                'slug'             => 'cincin7345',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika52.jpg',
+            ],
+            [
+                'slug'             => 'cincin7435',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika53.jpg',
+            ],
+            [
+                'slug'             => 'cincin712',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika54.jpg',
+            ],
+            [
+                'slug'             => 'cincin72',
+                'name'             => 'Cincin Luxury',
+                'description'      => 'Luxury wedding ring',
+                'price' => random_int(50000, 2500000),
+                'rental_price'     => null,
+                'rental_duration'  => null,
+                'stock'            => 30,
+                'category_id'      => $aksesoris->id,
+                'is_featured'      => true,
+                'image'            => 'images/dika55.jpg',
+            ],
+        ];
 
+        foreach ($products as $index => $productData) {
+            $categoryKey = match (true) {
+                $productData['category_id'] === $kerajinan->id => 'kerajinan',
+                $productData['category_id'] === $aksesoris->id => 'aksesoris',
+                $productData['category_id'] === $seserahan->id => 'seserahan',
+                default => 'aksesoris',
+            };
 
-        $this->command->info('✅ Products created');
+            if (in_array($productData['name'], ['Cincin Luxury', 'Souvenir', 'Souvenir Premium'], true)) {
+                $products[$index]['name'] = $this->randomProductName($categoryKey);
+            }
+        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCT IMAGES
-        |--------------------------------------------------------------------------
-        */
-
-        // hapus image lama biar gak dobel
+        // Hapus semua gambar lama agar tidak dobel
         ProductImage::truncate();
 
-        $product1->images()->createMany([
-            [
-                'image_path' => 'images/kotak.jpeg',
-                'is_primary' => true,
-            ],
-        ]);
+        foreach ($products as $data) {
+            $image = $data['image'];
+            unset($data['image']);
 
-        $product2->images()->createMany([
-            [
-                'image_path' => 'images/kotak4.jpg',
-                'is_primary' => true,
-            ],
-        ]);
+            $product = Product::updateOrCreate(['slug' => $data['slug']], $data);
 
-        $product3->images()->createMany([
-            [
-                'image_path' => 'images/kotak6.jpg',
-                'is_primary' => true,
-            ],
-        ]);
+            $product->images()->updateOrCreate(
+                ['is_primary' => true],
+                ['image_path' => $image, 'is_primary' => true]
+            );
+        }
 
-        $product5->images()->createMany([
-            [
-                'image_path' => 'images/kotak5.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product6->images()->createMany([
-            [
-                'image_path' => 'images/kotak6.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product7->images()->createMany([
-            [
-                'image_path' => 'images/kotak7.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product8->images()->createMany([
-            [
-                'image_path' => 'images/gambar8.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product9->images()->createMany([
-            [
-                'image_path' => 'images/gambar9.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product10->images()->createMany([
-            [
-                'image_path' => 'images/gambar10.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product11->images()->createMany([
-            [
-                'image_path' => 'images/gambar11.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product12->images()->createMany([
-            [
-                'image_path' => 'images/gambar12.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product14->images()->createMany([
-            [
-                'image_path' => 'images/gambar14.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product15->images()->createMany([
-            [
-                'image_path' => 'images/gambar15.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $product16->images()->createMany([
-            [
-                'image_path' => 'images/gambar16.jpg',
-                'is_primary' => true,
-            ],
-        ]);
-
-        $this->command->info('✅ Product images created');
+        $this->command->info('✅ Products & images created (' . count($products) . ' produk)');
 
         $this->command->newLine();
-        $this->command->info('🎉 Database seeding completed!');
-        $this->command->info('📧 Login: admin@example.com / p');
+        $this->command->info('🎉 Seeding selesai!');
+        $this->command->info('📧 Login: admin@example.com  |  🔑 Password: p');
+    }
 
-        $source      = public_path('images/logo.jpeg');
-        $destination = storage_path('app/public/images/logo.jpeg');
+    private function randomProductName(string $category): string
+    {
+        $names = [
+            'kerajinan' => [
+                'Kotak Kayu Premium',
+                'Wadah Anyaman Elegan',
+                'Kerajinan Rotan Modern',
+                'Box Serbaguna Kayu',
+                'Produk Anyaman Artisan',
+            ],
+            'aksesoris' => [
+                'Cincin Emas Modern',
+                'Kalung Mutiara Premium',
+                'Gelang Perak Chic',
+                'Anting Swarovski',
+                'Cincin Berlian Minimalis',
+            ],
+            'seserahan' => [
+                'Souvenir Pernikahan',
+                'Box Hadiah Premium',
+                'Parcel Seserahan Modern',
+                'Paket Hadiah Eksklusif',
+                'Kotak Seserahan Keren',
+            ],
+        ];
 
-        if (file_exists($source)) {
-            \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('app/public/images'));
-            \Illuminate\Support\Facades\File::copy($source, $destination);
-        }
+        $options = $names[$category] ?? $names['aksesoris'];
+
+        return $options[array_rand($options)];
     }
 }

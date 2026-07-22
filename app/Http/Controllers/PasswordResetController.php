@@ -23,16 +23,18 @@ class PasswordResetController extends Controller
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
 
-        $code = Str::random(6); // Kode 6 karakter
+        $code = Str::random(6); 
         DB::table('password_resets')->updateOrInsert(
             ['email' => $request->email],
             ['token' => Hash::make($code), 'created_at' => now()]
         );
 
-        // Kirim email (buat Mailable jika belum)
         Mail::to($request->email)->send(new PasswordResetCode($code));
 
-        return redirect()->route('password.enter-code')->with('email', $request->email);
+        // Simpan email ke session agar bisa dipakai di langkah berikutnya
+        session(['email' => $request->email]);
+
+        return redirect()->route('password.enter-code')->with('status', 'Kode verifikasi sudah dikirim ke email kamu!');
     }
 
     // Halaman masukkan kode
@@ -47,32 +49,49 @@ class PasswordResetController extends Controller
         $request->validate(['code' => 'required|string']);
 
         $reset = DB::table('password_resets')->where('email', session('email'))->first();
+        
         if (!$reset || !Hash::check($request->code, $reset->token) || now()->diffInMinutes($reset->created_at) > 10) {
-            return back()->withErrors(['code' => 'Kode salah atau expired.']);
+            return back()->withErrors(['code' => 'Waduh, kode salah atau sudah kadaluarsa (expired) nih!']);
         }
 
-        return redirect()->route('password.reset-form')->with('email', session('email'));
+        return redirect()->route('password.reset-form');
     }
 
     // Halaman update password
     public function showResetForm()
     {
+        // Pastikan session email masih ada
+        if (!session()->has('email')) {
+            return redirect()->route('password.forgot')->withErrors(['email' => 'Sesi habis, silakan ulangi proses lupa password.']);
+        }
         return view('auth.reset-password');
     }
 
     // Update password
     public function resetPassword(Request $request)
     {
+        // Validasi dengan pesan custom yang lebih personal
         $request->validate([
             'password' => 'required|min:8|confirmed',
+        ], [
+            'password.required' => 'Password-nya diisi dulu ya, bro!',
+            'password.min' => 'Waduh, sandinya minimal harus 8 karakter ya!',
+            'password.confirmed' => 'Yah, konfirmasi password-nya belum sama nih.',
         ]);
 
         $user = User::where('email', session('email'))->first();
-        $user->password = Hash::make($request->password);
-        $user->save();
+        
+        if ($user) {
+            $user->password = Hash::make($request->password);
+            $user->save();
 
-        DB::table('password_resets')->where('email', session('email'))->delete();
+            // Hapus data reset setelah berhasil
+            DB::table('password_resets')->where('email', session('email'))->delete();
+            session()->forget('email');
 
-        return redirect()->route('login')->with('success', 'Password berhasil diupdate.');
+            return redirect()->route('login')->with('success', 'Password berhasil diupdate. Sekarang sudah aman, silakan login!');
+        }
+
+        return back()->withErrors(['email' => 'User tidak ditemukan.']);
     }
 }

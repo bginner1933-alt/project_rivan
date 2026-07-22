@@ -35,6 +35,7 @@ class ProductController extends Controller
                 'category_id',
                 'stock',
                 'rental_duration',
+                'weight',
                 'created_at'
             ])
             ->with([
@@ -93,6 +94,9 @@ class ProductController extends Controller
             // FIX RENTAL
             $data['rental_price'] = $data['rental_price'] ?? null;
             $data['rental_duration'] = $data['rental_duration'] ?? null;
+
+            // FIX WEIGHT (Jika di request form kosong, beri default nilai 0)
+            $data['weight'] = $request->filled('weight') ? $request->weight : 0; // 🔥 FIX 2
 
             // FIX CHECKBOX
             $data['is_active'] = $request->has('is_active');
@@ -175,9 +179,12 @@ class ProductController extends Controller
                 ? $request->rental_price
                 : null;
 
-            $data['rental_duration'] = $request->filled('rental_duration') // <-- UBAH INI
+            $data['rental_duration'] = $request->filled('rental_duration')
                 ? $request->rental_duration
                 : null;
+
+            // FIX WEIGHT (Sama seperti store, tangkap data request pembaruan berat)
+            $data['weight'] = $request->filled('weight') ? $request->weight : 0; // 🔥 FIX 3
 
             // FIX CHECKBOX
             $data['is_active'] = $request->has('is_active');

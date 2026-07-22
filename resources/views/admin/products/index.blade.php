@@ -57,9 +57,7 @@
                 <table class="table table-hover align-middle custom-table">
                     <thead>
                         <tr class="bg-light text-nowrap">
-                            <th width="50" class="text-center ps-4 border-0 text-primary">
-                                <input type="checkbox" id="selectAll" class="form-check-input">
-                            </th>
+                            <th width="50" class="text-center ps-4 border-0 text-primary"><input type="checkbox" id="selectAll" class="form-check-input"></th>
                             <th width="80" class="text-center border-0 text-primary small-caps">ID</th>
                             <th width="100" class="text-center border-0 text-primary small-caps">Pratinjau</th>
                             <th class="border-0 text-primary small-caps">Detail Produk</th>
@@ -72,13 +70,13 @@
                     <tbody>
                         @forelse ($products as $product)
                             <tr class="product-row">
-                                <td class="text-center ps-4">
+                                <td class="text-center ps-4 align-middle">
                                     <input type="checkbox" value="{{ $product->id }}" class="product-checkbox form-check-input">
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center align-middle">
                                     <span class="badge bg-light text-primary border">#{{ str_pad($product->id, 4, '0', STR_PAD_LEFT) }}</span>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center align-middle">
                                     <div class="image-container shadow-sm border border-2 border-white rounded-3 overflow-hidden mx-auto">
                                         @php 
                                             $img = $product->images->where('is_primary', 1)->first() ?? $product->images->first(); 
@@ -90,66 +88,51 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td>
+                                <td class="align-middle">
                                     <div class="fw-bold text-dark mb-0">{{ $product->name }}</div>
-                                    <span class="badge bg-info bg-opacity-10 text-info mt-1" style="font-size: 0.65rem;">{{ $product->category->name ?? 'Uncategorized' }}</span>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="badge bg-info bg-opacity-10 text-info" style="font-size: 0.65rem;">{{ $product->category->name ?? 'Uncategorized' }}</span>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25" style="font-size: 0.65rem;">
+                                            <i class="bi bi-box me-1"></i>{{ $product->weight ?? 0 }} gr
+                                        </span>
+                                    </div>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center align-middle">
                                     @if($product->stock <= 0)
                                         <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger px-3">Habis</span>
                                     @else
                                         <span class="text-dark fw-semibold">{{ $product->stock }} <small class="text-muted">Unit</small></span>
                                     @endif
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end align-middle">
                                     <div class="d-flex flex-column">
-                                        
-                                        {{-- Harga Diskon (utama kalau ada) --}}
                                         @if($product->discount_price)
-                                            <span class="fw-bold text-dark">
-                                                Rp {{ number_format($product->discount_price, 0, ',', '.') }}
-                                            </span>
-
-                                            {{-- Harga Asli dicoret --}}
-                                            <small class="text-danger text-decoration-line-through" style="font-size: 0.7rem;">
-                                                Rp {{ number_format($product->price, 0, ',', '.') }}
-                                            </small>
+                                            <span class="fw-bold text-dark">Rp {{ number_format($product->discount_price, 0, ',', '.') }}</span>
+                                            <small class="text-danger text-decoration-line-through" style="font-size: 0.7rem;">Rp {{ number_format($product->price, 0, ',', '.') }}</small>
                                         @else
-                                            {{-- Kalau tidak ada diskon, tampilkan harga asli saja --}}
-                                            <span class="fw-bold text-dark">
-                                                Rp {{ number_format($product->price, 0, ',', '.') }}
-                                            </span>
+                                            <span class="fw-bold text-dark">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
                                         @endif
-
                                     </div>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center align-middle">
                                     @if(!is_null($product->rental_price) && $product->rental_price > 0)
                                         <div class="d-flex flex-column">
-                                            {{-- Format Harga Sewa --}}
-                                            <span class="fw-bold text-primary">
-                                                Rp {{ number_format($product->rental_price, 0, ',', '.') }}
-                                            </span>
-                                            
-                                            {{-- Memanggil angka durasi sewa secara presisi dari database --}}
-                                            <small class="text-muted" style="font-size: 0.65rem;">
-                                                Per {{ $product->rental_duration ?? 0 }} Hari
-                                            </small>
+                                            <span class="fw-bold text-primary">Rp {{ number_format($product->rental_price, 0, ',', '.') }}</span>
+                                            <small class="text-muted">Per {{ $product->rental_duration }} Hari</small>
                                         </div>
                                     @else
-                                        {{-- Jika produk tidak disewakan --}}
-                                        <span class="text-muted fw-normal">-</span>
+                                        <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="text-center pe-4">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary rounded-circle action-btn">
-                                            <i class="fas fa-pen-fancy"></i>
+                                <td class="text-center pe-4 align-middle">
+                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-outline-primary btn-sm action-btn" title="Edit">
+                                            <i class="bi bi-pencil-fill"></i>
                                         </a>
-                                        <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline m-0">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle action-btn" onclick="return confirm('Hapus koleksi ini?')">
-                                                <i class="fas fa-eraser"></i>
+                                            <button type="submit" class="btn btn-outline-danger btn-sm action-btn" onclick="return confirm('Yakin hapus?')" title="Hapus">
+                                                <i class="bi bi-trash-fill"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -178,7 +161,6 @@
     </div>
 </div>
 
-{{-- Hidden Form for Bulk Delete --}}
 <form id="formBulkDelete" action="{{ route('admin.products.bulkDelete') }}" method="POST" style="display:none;">
     @csrf @method('DELETE')
     <div id="hiddenInputsContainer"></div>
@@ -194,7 +176,8 @@
     .no-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa; color: #ced4da; }
     .custom-table thead th { font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 1px; padding: 15px 10px; background-color: #f8f9fa; }
     .product-row:hover { background-color: #f8fbff !important; }
-    .action-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+    .action-btn { width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
+    .action-btn i { font-size: 14px; line-height: 1; }
 </style>
 
 <script>

@@ -30,6 +30,7 @@ return new class extends Migration
     // Total & Biaya
     $table->decimal('total_amount', 12, 2);
     $table->decimal('shipping_cost', 12, 2)->default(0);
+    $table->integer('weight')->default(0)->comment('dalam gram'); // Berat total dalam gram, default 0
 
     // Midtrans Snap Token
     $table->string('snap_token')->nullable();

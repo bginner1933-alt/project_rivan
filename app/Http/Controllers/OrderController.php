@@ -38,16 +38,40 @@ class OrderController extends Controller
 
         // Load relasi
         $order->load(['items.product', 'items.product.primaryImage']);
+        
+        // 🔥 TAMBAHKAN BARIS INI BRO: Paksa ambil data kolom paling ter-update dari tabel database
+        $order->refresh();
 
-        // 🔥 BUAT SNAP TOKEN JIKA BELUM ADA
-        if ($order->payment_status === 'unpaid' && !$order->snap_token) {
+        // 🔥 FIX: BUAT SNAP TOKEN HANYA JIKA BELUM ADA DAN BUKAN COD!
+        if ($order->payment_status === 'unpaid' && strtolower($order->payment_method ?? '') !== 'cod' && !$order->snap_token) {
             $snapToken = $midtrans->createSnapToken($order);
 
             $order->update([
                 'snap_token' => $snapToken
             ]);
+            
+            // Refresh lagi setelah update token biar datanya sinkron
+            $order->refresh();
         }
 
         return view('orders.show', compact('order'));
+    }
+
+    public function convertToCod(Order $order)
+    {
+        // Pastikan pesanan memang belum dibayar sebelum diganti
+        if ($order->payment_status === 'unpaid') {
+            $order->update([
+                'payment_method' => 'cod',
+                'snap_token' => null // hapus snap token lama
+            ]);
+            
+            // 🔥 TAMBAHKAN INI BRO: Paksa Laravel ambil data paling baru dari database
+            $order->refresh(); 
+            
+            return redirect()->back()->with('success', 'Pembayaran akan dilakukan saat pesanan diterima (Cash on Delivery/COD).');
+        }
+
+        return redirect()->back()->with('error', 'Pesanan tidak dapat diubah.');
     }
 }

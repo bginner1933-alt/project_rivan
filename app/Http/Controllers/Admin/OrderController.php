@@ -20,6 +20,16 @@ class OrderController extends Controller
                     strtolower(trim($request->status))
                 ]);
             })
+            ->when($request->filled('payment'), function ($q) use ($request) {
+                if ($request->payment === 'cod') {
+                    $q->where('payment_method', 'cod');
+                } elseif ($request->payment === 'paid') {
+                    $q->where('payment_status', 'paid')
+                    ->where('payment_method', '!=', 'cod');
+                } elseif ($request->payment === 'unpaid') {
+                    $q->where('payment_status', 'unpaid');
+                }
+            })
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -65,17 +75,23 @@ class OrderController extends Controller
 
         // anggap field payment_status = paid / unpaid
         $paymentStatus = strtolower($order->payment_status ?? 'unpaid');
+        $paymentMethod = strtolower($order->payment_method ?? '');
 
-        // kalau belum bayar
-        if ($paymentStatus !== 'paid') {
+        // COD dikecualikan dari validasi ini, karena pembayaran
+        // memang baru terjadi tunai saat barang sampai ke tangan customer
+        if ($paymentMethod !== 'cod') {
 
-            // tidak boleh processing/completed
-            if (in_array($newStatus, ['processing', 'completed'])) {
+            // kalau belum bayar
+            if ($paymentStatus !== 'paid') {
 
-                return back()->with(
-                    'error',
-                    'Pesanan belum dibayar, status tidak bisa diubah.'
-                );
+                // tidak boleh processing/completed
+                if (in_array($newStatus, ['processing', 'completed'])) {
+
+                    return back()->with(
+                        'error',
+                        'Pesanan belum dibayar, status tidak bisa diubah.'
+                    );
+                }
             }
         }
 

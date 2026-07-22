@@ -19,6 +19,8 @@ return new class extends Migration
     $table->integer('quantity');
     $table->decimal('price', 12, 2); // Simpan harga SAAT transaksi, bukan relasi ke harga produk sekarang
     $table->decimal('subtotal', 12, 2); // quantity * price
+    $table->integer('weight')->default(0)->comment('dalam gram'); // Berat total item (quantity * product weight)
+    
 
     $table->timestamps();
 });
